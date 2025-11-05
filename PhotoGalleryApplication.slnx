@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/PhotoGallery.Application/">
+    <Project Path="PhotoGallery.Application/PhotoGallery.Application.csproj" />
+  </Folder>
+  <Folder Name="/PhotoGallery.Domain/">
+    <Project Path="PhotoGallery.Domain/PhotoGallery.Domain.csproj" />
+  </Folder>
+  <Folder Name="/PhotoGallery.Infrastructure/">
+    <Project Path="PhotoGallery.Infrastructure/PhotoGallery.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/PhotoGallery.Web/">
+    <Project Path="PhotoGallery.Web/PhotoGallery.Web.csproj" />
+  </Folder>
+  <Folder Name="/SolutionFiles/">
+    <File Path="CHANGELOG.md" />
+  </Folder>
+  <Folder Name="/Tests/" />
+  <Folder Name="/Tests/PhotoGallery.IntegrationTests/" />
+  <Folder Name="/Tests/PhotoGallery.UnitTests/">
+    <Project Path="PhotoGallery.UnitTests/PhotoGallery.UnitTests.csproj" />
+  </Folder>
+</Solution>

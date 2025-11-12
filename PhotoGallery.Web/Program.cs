@@ -1,3 +1,8 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using PhotoGallery.Domain.Entities;
+using PhotoGallery.Infrastructure.DbContext;
+
 namespace PhotoGallery.Web
 {
     public class Program
@@ -6,12 +11,31 @@ namespace PhotoGallery.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // MVC
             builder.Services.AddControllersWithViews();
+
+            // DbContext
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            // Identity (on .NET 10)
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = false;
+#if DEBUG
+                options.Password.RequireDigit = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 1;
+                options.Password.RequireNonAlphanumeric = false;
+#endif
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders()
+            .AddDefaultUI();
 
             var app = builder.Build();
 
-
-            // Configure the HTTP request pipeline.
+            // Middleware
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -21,6 +45,7 @@ namespace PhotoGallery.Web
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapStaticAssets();
@@ -28,6 +53,8 @@ namespace PhotoGallery.Web
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
+
+            app.MapRazorPages(); // register / login pages
 
             app.Run();
         }

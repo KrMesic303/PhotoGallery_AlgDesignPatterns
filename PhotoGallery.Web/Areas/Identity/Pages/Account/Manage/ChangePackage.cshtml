@@ -1,0 +1,30 @@
+﻿@page
+@model ChangePackageModel
+@{
+    ViewData["Title"] = "Change Package";
+    ViewData["ActivePage"] = ManageNavPages.ChangePackage;
+}
+
+<h3>Change Your Package</h3>
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<form method="post">
+    <div class="mb-3">
+        <label class="form-label">Select a new package</label>
+        <select asp-for="SelectedPackageId"
+                asp-items="Model.PackageOptions"
+                class="form-select">
+        </select>
+    </div>
+
+    <div class="alert alert-info">
+        Package changes take effect <strong>the following day</strong>.
+    </div>
+
+    <button type="submit" class="btn btn-primary">Confirm Change</button>
+    <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -12,6 +12,7 @@
     <Project Path="PhotoGallery.Web/PhotoGallery.Web.csproj" />
   </Folder>
   <Folder Name="/SolutionFiles/">
+    <File Path="../UCA-AADBDT-Project.pdf" />
     <File Path="CHANGELOG.md" />
   </Folder>
   <Folder Name="/Tests/" />

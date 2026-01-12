@@ -1,0 +1,37 @@
+﻿@model IEnumerable<PhotoGallery.Domain.Entities.ApplicationUser>
+
+<h3>Users</h3>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Package</th>
+            <th>Effective From</th>
+            <th>Change Package</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.PackagePlan?.Name</td>
+                <td>@user.PackageEffectiveFrom.ToShortDateString()</td>
+                <td>
+                    <form asp-action="ChangePackage" method="post" class="d-flex">
+                        <input type="hidden" name="userId" value="@user.Id" />
+                        <select name="packageId" class="form-select form-select-sm me-2">
+                            <option value="1">FREE</option>
+                            <option value="2">PRO</option>
+                            <option value="3">GOLD</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            Update
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,32 @@
+﻿@model dynamic
+
+<h3>System Statistics</h3>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Total Users</h5>
+                <h3>@Model.Users</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Total Photos</h5>
+                <h3>@Model.Photos</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5>Total Storage Used</h5>
+                <h3>@(Model.StorageUsed / 1024 / 1024) MB</h3>
+            </div>
+        </div>
+    </div>
+</div>

@@ -12,7 +12,7 @@ namespace PhotoGallery.Web
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +48,31 @@ namespace PhotoGallery.Web
 
             var app = builder.Build();
 
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+
+                // Ensure Administrator role exists
+                const string adminRole = "Administrator";
+
+                if (!await roleManager.RoleExistsAsync(adminRole))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(adminRole));
+                }
+
+                // Assign Administrator role to a specific user (your email)
+                var adminEmail = "admin@test.com"; // CHANGE THIS
+
+                var adminUser = await userManager.FindByEmailAsync(adminEmail);
+                if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, adminRole))
+                {
+                    await userManager.AddToRoleAsync(adminUser, adminRole);
+                }
+            }
+
             // Middleware
             if (!app.Environment.IsDevelopment())
             {
@@ -74,6 +99,7 @@ namespace PhotoGallery.Web
             app.MapRazorPages(); // register / login pages
 
             app.Run();
+
         }
     }
 }

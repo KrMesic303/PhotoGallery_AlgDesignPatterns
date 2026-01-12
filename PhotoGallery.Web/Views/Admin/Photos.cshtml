@@ -1,0 +1,39 @@
+﻿@model IEnumerable<PhotoGallery.Domain.Entities.Photo>
+
+<h3>All Photos</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Thumbnail</th>
+            <th>User</th>
+            <th>Description</th>
+            <th>Uploaded</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var photo in Model)
+        {
+            <tr>
+                <td>
+                    <img src="/uploads/@photo.ThumbnailStorageKey"
+                         width="80"
+                         class="rounded" />
+                </td>
+                <td>@photo.User.Email</td>
+                <td>@photo.Description</td>
+                <td>@photo.UploadedAtUtc</td>
+                <td>
+                    <form asp-action="DeletePhoto" method="post">
+                        <input type="hidden" name="id" value="@photo.Id" />
+                        <button class="btn btn-sm btn-danger"
+                                onclick="return confirm('Delete this photo?');">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

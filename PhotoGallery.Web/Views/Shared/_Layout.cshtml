@@ -27,14 +27,6 @@
                                 Gallery
                             </a>
                         </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-controller="Home"
-                               asp-action="Privacy">
-                                Privacy
-                            </a>
-                        </li>
                     </ul>
 
                     <li class="nav-item">
@@ -44,6 +36,23 @@
                             Search
                         </a>
                     </li>
+
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle"
+                               data-bs-toggle="dropdown"
+                               href="#">
+                                Admin
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Users</a></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Photos">Photos</a></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Logs">Logs</a></li>
+                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Statistics">Statistics</a></li>
+                            </ul>
+                        </li>
+                    }
 
                     <partial name="_LoginPartial" />
                 </div>
@@ -58,7 +67,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - PhotoGallery.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - PhotoGallery.Web
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

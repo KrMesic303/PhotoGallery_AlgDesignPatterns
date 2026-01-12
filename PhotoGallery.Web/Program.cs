@@ -4,6 +4,7 @@ using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
 using PhotoGallery.Infrastructure.Logging;
+using PhotoGallery.Infrastructure.Queries;
 using PhotoGallery.Infrastructure.Services;
 using PhotoGallery.Infrastructure.Storage;
 
@@ -40,6 +41,7 @@ namespace PhotoGallery.Web
             builder.Services.AddScoped<IAuditLogger, AuditLogger>();
             builder.Services.AddScoped<IUploadQuotaService, UploadQuotaService>();
             builder.Services.AddScoped<IPhotoUploadPolicy, PhotoUploadPolicy>();
+            builder.Services.AddScoped<IPhotoQueryService, PhotoQueryService>();
 
             // Factory pattern (DI registrations) - Storage and image processing configuraiton
             builder.Services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();

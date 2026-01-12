@@ -5,6 +5,9 @@ using PhotoGallery.Infrastructure.DbContext;
 
 namespace PhotoGallery.Infrastructure.Services
 {
+    /// <summary>
+    /// Specification pattern
+    /// </summary>
     public class PhotoUploadPolicy : IPhotoUploadPolicy
     {
         private readonly ApplicationDbContext _context;

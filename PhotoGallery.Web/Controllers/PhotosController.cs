@@ -10,7 +10,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
-using System.Security.Claims;
+using SixLabors.ImageSharp.Processing;
 
 namespace PhotoGallery.Web.Controllers
 {
@@ -69,11 +69,12 @@ namespace PhotoGallery.Web.Controllers
             if (!policyResult.IsAllowed)
             {
                 ModelState.AddModelError("", policyResult.ErrorMessage!);
+                ViewBag.Quota = await _quotaService.GetQuotaAsync(user);
                 return View();
             }
 
-            // Load image
-            using var image = await Image.LoadAsync(file.OpenReadStream());
+            // Load originalImage
+            using var originalImage = await Image.LoadAsync(file.OpenReadStream());
             var pipeline = new ImageProcessingPipeline();
 
             // Resize processor
@@ -84,57 +85,77 @@ namespace PhotoGallery.Web.Controllers
             var formatProcessor = new FormatImageProcessor(format ?? "jpg");
             pipeline.AddProcessor(formatProcessor);
 
-            pipeline.Execute(image);
+            var processedImage = pipeline.Execute(originalImage);
 
-            using var outputStream = new MemoryStream();
 
-            switch (format?.ToLowerInvariant())
-            {
-                case "png":
-                    await image.SaveAsync(outputStream, new PngEncoder());
-                    break;
-                case "bmp":
-                    await image.SaveAsync(outputStream, new BmpEncoder());
-                    break;
-                default:
-                    await image.SaveAsync(outputStream, new JpegEncoder());
-                    break;
-            }
+            using var imageStream = new MemoryStream();
+            SaveImage(processedImage, imageStream, formatProcessor);
+            imageStream.Position = 0;
 
-            outputStream.Position = 0;
-            var storedFileName = Path.GetFileNameWithoutExtension(file.FileName) + formatProcessor.GetExtension();
-            var storageKey = await _storage.SaveAsync(outputStream, storedFileName, file.ContentType);
+            var storageKey = await _storage.SaveAsync(imageStream, Path.GetFileNameWithoutExtension(file.FileName) + formatProcessor.GetExtension(), file.ContentType);
 
+            // Thumnails creation
+            using var thumbImage = processedImage.Clone(ctx =>
+                ctx.Resize(new ResizeOptions
+                {
+                    Mode = ResizeMode.Crop,
+                    Size = new Size(300, 300)
+                }));
+
+            using var thumbStream = new MemoryStream();
+            await thumbImage.SaveAsJpegAsync(thumbStream);
+            thumbStream.Position = 0;
+
+            var thumbnailKey = await _storage.SaveAsync(thumbStream, "thumb_" + file.FileName, "image/jpeg");
+
+            // Photo entity
             var photo = new Photo
             {
                 StorageKey = storageKey,
+                ThumbnailStorageKey = thumbnailKey,
                 OriginalFileName = file.FileName,
                 ContentType = file.ContentType,
-                SizeInBytes = outputStream.Length,
-                Description = description ?? string.Empty,
-                UserId = user.Id,
-                UploadedAtUtc = DateTime.UtcNow
+                SizeInBytes = imageStream.Length,
+                Description = description ?? "",
+                UserId = user.Id
             };
 
-            // Hashtags
-            foreach (var tag in (hashtags ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            // Handling hastags on photos
+            foreach (var tag in (hashtags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 var normalized = tag.ToLowerInvariant();
 
-                var hashtag = await _context.Hashtags
+                var hashtagEntity = await _context.Hashtags
                     .FirstOrDefaultAsync(h => h.Value == normalized)
                     ?? new Hashtag { Value = normalized };
 
-                photo.Hashtags.Add(new PhotoHashtag { Hashtag = hashtag });
+                photo.Hashtags.Add(new PhotoHashtag { Hashtag = hashtagEntity });
             }
 
+            // Save to database
             _context.Photos.Add(photo);
             await _context.SaveChangesAsync();
 
-            // Observer pattern - audit logging
+            // Audit log
             await _auditLogger.LogAsync(user.Id, action: "UPLOAD_PHOTO", entityType: nameof(Photo), entityId: photo.Id.ToString());
 
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Gallery");
+        }
+
+        private static void SaveImage(Image image, Stream output, FormatImageProcessor format)
+        {
+            switch (format.GetExtension())
+            {
+                case ".png":
+                    image.Save(output, new PngEncoder());
+                    break;
+                case ".bmp":
+                    image.Save(output, new BmpEncoder());
+                    break;
+                default:
+                    image.Save(output, new JpegEncoder());
+                    break;
+            }
         }
     }
 }

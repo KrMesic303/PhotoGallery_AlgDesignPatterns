@@ -1,0 +1,21 @@
+﻿@model PhotoGallery.Application.DTOs.PhotoDetailsDto
+
+<h3>Photo</h3>
+
+<img src="@Model.ImageUrl" class="img-fluid mb-3" />
+
+<p>@Model.Description</p>
+
+<p>
+    Uploaded by <strong>@Model.AuthorEmail</strong><br />
+    @Model.UploadedAt
+</p>
+
+<p>
+    @foreach (var tag in Model.Hashtags)
+    {
+        <span class="badge bg-secondary">#@tag</span>
+    }
+</p>
+
+<a asp-action="Index">Back to gallery</a>

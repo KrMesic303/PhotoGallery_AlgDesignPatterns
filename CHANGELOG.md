@@ -1,5 +1,10 @@
 # PhotoGallery Application
 
+# 0.0.5
+**Added**
+	- Thumbnails and DTO models
+	- Gallery page and controller
+
 # 0.0.4
 **Added**
 	- Audit logging abstraction and implementation

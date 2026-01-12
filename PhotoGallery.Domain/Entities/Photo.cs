@@ -20,5 +20,6 @@
         public ApplicationUser? User { get; set; }
 
         public ICollection<PhotoHashtag> Hashtags { get; set; } = new List<PhotoHashtag>();
+        public string ThumbnailStorageKey { get; set; } = string.Empty;
     }
 }

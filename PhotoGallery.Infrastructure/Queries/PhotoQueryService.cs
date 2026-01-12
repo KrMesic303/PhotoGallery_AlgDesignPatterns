@@ -52,5 +52,60 @@ namespace PhotoGallery.Infrastructure.Queries
                 })
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<List<PhotoListItemDto>> SearchAsync(PhotoSearchCriteriaDto criteria)
+        {
+            var query = _context.Photos
+                .Include(p => p.User)
+                .Include(p => p.Hashtags)
+                    .ThenInclude(ph => ph.Hashtag)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(criteria.AuthorEmail))
+            {
+                query = query.Where(p => p.User.Email!.Contains(criteria.AuthorEmail));
+            }
+
+            if (!string.IsNullOrWhiteSpace(criteria.Hashtag))
+            {
+                var tag = criteria.Hashtag.ToLowerInvariant();
+                query = query.Where(p => p.Hashtags.Any(h => h.Hashtag.Value == tag));
+            }
+
+            if (criteria.UploadedFrom.HasValue)
+            {
+                query = query.Where(p => p.UploadedAtUtc >= criteria.UploadedFrom.Value);
+            }
+
+            if (criteria.UploadedTo.HasValue)
+            {
+                query = query.Where(p => p.UploadedAtUtc <= criteria.UploadedTo.Value);
+            }
+
+            if (criteria.MinSizeBytes.HasValue)
+            {
+                query = query.Where(p => p.SizeInBytes >= criteria.MinSizeBytes.Value);
+            }
+
+            if (criteria.MaxSizeBytes.HasValue)
+            {
+                query = query.Where(p => p.SizeInBytes <= criteria.MaxSizeBytes.Value);
+            }
+
+            return await query
+                .OrderByDescending(p => p.UploadedAtUtc)
+                .Select(p => new PhotoListItemDto
+                {
+                    Id = p.Id,
+                    ThumbnailUrl = string.IsNullOrEmpty(p.ThumbnailStorageKey)
+                        ? "/images/no-thumbnail.png"
+                        : "/uploads/" + p.ThumbnailStorageKey,
+                    Description = p.Description,
+                    AuthorEmail = p.User.Email!,
+                    UploadedAt = p.UploadedAtUtc,
+                    Hashtags = p.Hashtags.Select(h => h.Hashtag.Value).ToList()
+                })
+                .ToListAsync();
+        }
     }
 }

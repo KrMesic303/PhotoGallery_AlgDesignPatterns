@@ -1,0 +1,41 @@
+﻿@model PhotoGallery.Application.DTOs.PhotoSearchCriteriaDto
+
+<h3>Search Photos</h3>
+
+<form asp-action="Search" method="post">
+    <div class="row">
+        <div class="col-md-4">
+            <label>Hashtag</label>
+            <input asp-for="Hashtag" class="form-control" />
+        </div>
+
+        <div class="col-md-4">
+            <label>Author Email</label>
+            <input asp-for="AuthorEmail" class="form-control" />
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-md-3">
+            <label>Uploaded From</label>
+            <input asp-for="UploadedFrom" type="date" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Uploaded To</label>
+            <input asp-for="UploadedTo" type="date" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Min Size (KB)</label>
+            <input asp-for="MinSizeBytes" type="number" class="form-control" />
+        </div>
+
+        <div class="col-md-3">
+            <label>Max Size (KB)</label>
+            <input asp-for="MaxSizeBytes" type="number" class="form-control" />
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Search</button>
+</form>

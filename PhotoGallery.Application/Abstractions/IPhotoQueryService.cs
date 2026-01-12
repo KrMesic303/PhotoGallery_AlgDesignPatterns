@@ -6,5 +6,6 @@ namespace PhotoGallery.Application.Abstractions
     {
         Task<List<PhotoListItemDto>> GetLatestAsync(int count);
         Task<PhotoDetailsDto?> GetDetailsAsync(int photoId);
+        Task<List<PhotoListItemDto>> SearchAsync(PhotoSearchCriteriaDto criteria);
     }
 }

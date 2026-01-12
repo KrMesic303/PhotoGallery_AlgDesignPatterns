@@ -1,0 +1,24 @@
+﻿@model List<PhotoGallery.Application.DTOs.PhotoListItemDto>
+
+<h3>Search Results</h3>
+
+@if (!Model.Any())
+{
+    <p>No photos found.</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var photo in Model)
+        {
+            <div class="col-md-3 mb-4">
+                <a asp-action="Details" asp-route-id="@photo.Id">
+                    <img src="@photo.ThumbnailUrl" class="img-fluid rounded" />
+                </a>
+                <p>@photo.Description</p>
+                <small>@photo.AuthorEmail</small><br />
+                <small>@photo.UploadedAt</small>
+            </div>
+        }
+    </div>
+}

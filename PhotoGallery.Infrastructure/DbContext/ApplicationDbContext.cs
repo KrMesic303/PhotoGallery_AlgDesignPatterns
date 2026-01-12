@@ -12,6 +12,11 @@ namespace PhotoGallery.Infrastructure.DbContext
         }
         public DbSet<PackagePlan> PackagePlans => Set<PackagePlan>();
 
+        // Photos and Hashtags
+        public DbSet<Photo> Photos => Set<Photo>();
+        public DbSet<Hashtag> Hashtags => Set<Hashtag>();
+        public DbSet<PhotoHashtag> PhotoHashtags => Set<PhotoHashtag>();
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -42,6 +47,20 @@ namespace PhotoGallery.Infrastructure.DbContext
                     MaxStorageBytes = 10L * 1024 * 1024 * 1024 // 10 GB
                 }
             );
+
+            // Photos relationships
+            builder.Entity<PhotoHashtag>()
+                .HasKey(ph => new { ph.PhotoId, ph.HashtagId });
+
+            builder.Entity<PhotoHashtag>()
+                .HasOne(ph => ph.Photo)
+                .WithMany(p => p.Hashtags)
+                .HasForeignKey(ph => ph.PhotoId);
+
+            builder.Entity<PhotoHashtag>()
+                .HasOne(ph => ph.Hashtag)
+                .WithMany()
+                .HasForeignKey(ph => ph.HashtagId);
         }
     }
 }

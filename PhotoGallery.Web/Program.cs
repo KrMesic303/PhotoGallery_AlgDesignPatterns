@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
+using PhotoGallery.Infrastructure.Storage;
 
 namespace PhotoGallery.Web
 {
@@ -33,6 +35,9 @@ namespace PhotoGallery.Web
             .AddDefaultTokenProviders()
             .AddDefaultUI();
 
+            builder.Services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();
+
+
             var app = builder.Build();
 
             // Middleware
@@ -49,6 +54,10 @@ namespace PhotoGallery.Web
             app.UseAuthorization();
 
             app.MapStaticAssets();
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+            app.UseRouting();
+
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")

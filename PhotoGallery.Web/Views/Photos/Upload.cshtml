@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = "Upload Photo";
+}
+
+<h3>Upload Photo</h3>
+
+<form asp-action="Upload" asp-controller="Photos" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label class="form-label">Photo</label>
+        <input type="file" name="file" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Hashtags (comma separated)</label>
+        <input name="hashtags" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>

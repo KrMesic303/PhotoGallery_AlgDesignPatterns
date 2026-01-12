@@ -1,5 +1,12 @@
 # PhotoGallery Application
 
+# 0.0.3
+**Added**
+	- Storage abstraction
+	- Local Storage service implementation
+	- Photo, Hastah, PhotoHastag models
+	- Photos Upload page and controller
+
 # 0.0.2
 **Added**
 	- Identity db context and initial models

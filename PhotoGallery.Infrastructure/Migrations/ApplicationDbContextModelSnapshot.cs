@@ -228,6 +228,23 @@ namespace PhotoGallery.Infrastructure.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("PhotoGallery.Domain.Entities.Hashtag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Hashtags");
+                });
+
             modelBuilder.Entity("PhotoGallery.Domain.Entities.PackagePlan", b =>
                 {
                     b.Property<int>("Id")
@@ -278,6 +295,62 @@ namespace PhotoGallery.Infrastructure.Migrations
                             MaxStorageBytes = 10737418240L,
                             Name = "GOLD"
                         });
+                });
+
+            modelBuilder.Entity("PhotoGallery.Domain.Entities.Photo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("SizeInBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Photos");
+                });
+
+            modelBuilder.Entity("PhotoGallery.Domain.Entities.PhotoHashtag", b =>
+                {
+                    b.Property<int>("PhotoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HashtagId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PhotoId", "HashtagId");
+
+                    b.HasIndex("HashtagId");
+
+                    b.ToTable("PhotoHashtags");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -340,9 +413,44 @@ namespace PhotoGallery.Infrastructure.Migrations
                     b.Navigation("PackagePlan");
                 });
 
+            modelBuilder.Entity("PhotoGallery.Domain.Entities.Photo", b =>
+                {
+                    b.HasOne("PhotoGallery.Domain.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PhotoGallery.Domain.Entities.PhotoHashtag", b =>
+                {
+                    b.HasOne("PhotoGallery.Domain.Entities.Hashtag", "Hashtag")
+                        .WithMany()
+                        .HasForeignKey("HashtagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PhotoGallery.Domain.Entities.Photo", "Photo")
+                        .WithMany("Hashtags")
+                        .HasForeignKey("PhotoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hashtag");
+
+                    b.Navigation("Photo");
+                });
+
             modelBuilder.Entity("PhotoGallery.Domain.Entities.PackagePlan", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("PhotoGallery.Domain.Entities.Photo", b =>
+                {
+                    b.Navigation("Hashtags");
                 });
 #pragma warning restore 612, 618
         }

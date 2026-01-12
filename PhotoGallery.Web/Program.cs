@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
+using PhotoGallery.Infrastructure.Logging;
 using PhotoGallery.Infrastructure.Services;
 using PhotoGallery.Infrastructure.Storage;
 
@@ -18,8 +19,7 @@ namespace PhotoGallery.Web
             builder.Services.AddControllersWithViews();
 
             // DbContext
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // Identity (on .NET 10)
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -36,8 +36,13 @@ namespace PhotoGallery.Web
             .AddDefaultTokenProviders()
             .AddDefaultUI();
 
-            builder.Services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();
+            // Strategy pattern - switching between different behaviours (storage, policies, logging)
+            builder.Services.AddScoped<IAuditLogger, AuditLogger>();
+            builder.Services.AddScoped<IUploadQuotaService, UploadQuotaService>();
             builder.Services.AddScoped<IPhotoUploadPolicy, PhotoUploadPolicy>();
+
+            // Factory pattern (DI registrations) - Storage and image processing configuraiton
+            builder.Services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();
 
             var app = builder.Build();
 

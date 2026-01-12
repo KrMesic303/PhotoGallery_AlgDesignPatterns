@@ -1,5 +1,11 @@
 # PhotoGallery Application
 
+# 0.0.4
+**Added**
+	- Audit logging abstraction and implementation
+	- Audit log model
+	- Comments with Design Patterns on classes where they are used/shown
+
 # 0.0.3
 **Added**
 	- Storage abstraction

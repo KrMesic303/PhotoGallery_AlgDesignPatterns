@@ -10,12 +10,17 @@ namespace PhotoGallery.Infrastructure.DbContext
             : base(options)
         {
         }
+
+        // Repository pattern (SRP)
         public DbSet<PackagePlan> PackagePlans => Set<PackagePlan>();
 
         // Photos and Hashtags
         public DbSet<Photo> Photos => Set<Photo>();
         public DbSet<Hashtag> Hashtags => Set<Hashtag>();
         public DbSet<PhotoHashtag> PhotoHashtags => Set<PhotoHashtag>();
+
+        // Audit Logs
+        public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

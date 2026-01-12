@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
+using PhotoGallery.Infrastructure.Services;
 using PhotoGallery.Infrastructure.Storage;
 
 namespace PhotoGallery.Web
@@ -36,7 +37,7 @@ namespace PhotoGallery.Web
             .AddDefaultUI();
 
             builder.Services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();
-
+            builder.Services.AddScoped<IPhotoUploadPolicy, PhotoUploadPolicy>();
 
             var app = builder.Build();
 

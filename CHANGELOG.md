@@ -6,6 +6,7 @@
 	- Local Storage service implementation
 	- Photo, Hastah, PhotoHastag models
 	- Photos Upload page and controller
+	- Upload Policy
 
 # 0.0.2
 **Added**

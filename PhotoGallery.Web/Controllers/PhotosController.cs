@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
-using System.Security.Claims;
 
 namespace PhotoGallery.Web.Controllers
 {
@@ -13,11 +13,15 @@ namespace PhotoGallery.Web.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IPhotoStorageService _storage;
+        private readonly IPhotoUploadPolicy _uploadPolicy;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public PhotosController(ApplicationDbContext context, IPhotoStorageService storage)
+        public PhotosController(ApplicationDbContext context, IPhotoStorageService storage, IPhotoUploadPolicy uploadPolicy, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _storage = storage;
+            _uploadPolicy = uploadPolicy;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -33,11 +37,23 @@ namespace PhotoGallery.Web.Controllers
                 return View();
             }
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrWhiteSpace(userId))
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
                 return Unauthorized();
 
-            var storageKey = await _storage.SaveAsync(file.OpenReadStream(), file.FileName, file.ContentType);
+            // Upload policy
+            var policyResult = await _uploadPolicy.CanUploadAsync(user, file.Length);
+            if (!policyResult.IsAllowed)
+            {
+                ModelState.AddModelError("", policyResult.ErrorMessage!);
+                return View();
+            }
+
+            // Save file
+            var storageKey = await _storage.SaveAsync(
+                file.OpenReadStream(),
+                file.FileName,
+                file.ContentType);
 
             var photo = new Photo
             {
@@ -46,17 +62,16 @@ namespace PhotoGallery.Web.Controllers
                 ContentType = file.ContentType,
                 SizeInBytes = file.Length,
                 Description = description ?? "",
-                UserId = userId
+                UserId = user.Id
             };
 
-            foreach (var tag in (hashtags ?? "")
-                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            foreach (var tag in (hashtags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 var normalized = tag.ToLowerInvariant();
-                var hashtagEntity = await _context.Hashtags.FirstOrDefaultAsync(h => h.Value == normalized)
-                                   ?? new Hashtag { Value = normalized };
+                var hashtag = await _context.Hashtags.FirstOrDefaultAsync(h => h.Value == normalized)
+                              ?? new Hashtag { Value = normalized };
 
-                photo.Hashtags.Add(new PhotoHashtag { Hashtag = hashtagEntity });
+                photo.Hashtags.Add(new PhotoHashtag { Hashtag = hashtag });
             }
 
             _context.Photos.Add(photo);

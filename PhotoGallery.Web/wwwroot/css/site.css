@@ -18,7 +18,7 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  padding-bottom: 100px;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -28,4 +28,46 @@ body {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+}
+
+.upload-fab {
+    position: fixed;
+    bottom: 80px;
+    right: 30px;
+    width: 56px;
+    height: 56px;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.photo-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 12px;
+}
+
+.photo-image {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+    margin: 0 auto;
+}
+
+.photo-meta {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.photo-card {
+    border-bottom: 1px solid #eee;
+}
+
+.photo-image:hover {
+    opacity: 0.95;
 }

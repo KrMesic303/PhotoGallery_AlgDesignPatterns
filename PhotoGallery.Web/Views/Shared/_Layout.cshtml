@@ -13,46 +13,14 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">PhotoGallery.Web</a>
+                <a class="navbar-brand" asp-area="" 
+                asp-controller="Gallery" 
+                asp-action="Index">PhotoGallery</a>
+
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-controller="Gallery"
-                               asp-action="Index">
-                                Gallery
-                            </a>
-                        </li>
-                    </ul>
-
-                    <li class="nav-item">
-                        <a class="nav-link text-dark"
-                           asp-controller="Gallery"
-                           asp-action="Search">
-                            Search
-                        </a>
-                    </li>
-
-                    @if (User.IsInRole("Administrator"))
-                    {
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle"
-                               data-bs-toggle="dropdown"
-                               href="#">
-                                Admin
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Users</a></li>
-                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Photos">Photos</a></li>
-                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Logs">Logs</a></li>
-                                <li><a class="dropdown-item" asp-controller="Admin" asp-action="Statistics">Statistics</a></li>
-                            </ul>
-                        </li>
-                    }
 
                     <partial name="_LoginPartial" />
                 </div>
@@ -65,14 +33,115 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - PhotoGallery.Web
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <partial name="~/Views/Gallery/_QuickSearchModal.cshtml" />
+
+    <nav class="navbar navbar-light bg-white fixed-bottom border-top">
+        <div class="container-fluid d-flex justify-content-around text-center">
+
+            <!-- HOME -->
+            <a class="nav-link"
+               asp-controller="Gallery"
+               asp-action="Index">
+                <div>🏠</div>
+                <small>Home</small>
+            </a>
+
+            <!-- SEARCH -->
+            <a class="nav-link"
+               href="#"
+               data-bs-toggle="modal"
+               data-bs-target="#quickSearchModal">
+                <div>🔍</div>
+                <small>Search</small>
+            </a>
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <!-- UPLOAD -->
+                <a class="nav-link"
+                   asp-controller="Photos"
+                   asp-action="Upload">
+                    <div>⬆️</div>
+                    <small>Upload</small>
+                </a>
+
+                <!-- PROFILE -->
+                <a class="nav-link"
+                   asp-area="Identity"
+                   asp-page="/Account/Manage/Index">
+                    <div>👤</div>
+                    <small>Profile</small>
+                </a>
+            }
+            else
+            {
+                <!-- LOGIN -->
+                <a class="nav-link"
+                   asp-area="Identity"
+                   asp-page="/Account/Login">
+                    <div>🔐</div>
+                    <small>Login</small>
+                </a>
+            }
+
+            @if (User.IsInRole("Administrator"))
+            {
+                <div class="dropup">
+                    <a class="nav-link dropdown-toggle text-danger"
+                       href="#"
+                       data-bs-toggle="dropdown"
+                       role="button">
+                        <div>🛠</div>
+                        <small>Admin</small>
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item"
+                               asp-controller="Admin"
+                               asp-action="Users">
+                                Users
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item"
+                               asp-controller="Admin"
+                               asp-action="Photos">
+                                Photos
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item"
+                               asp-controller="Admin"
+                               asp-action="Logs">
+                                Logs
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item"
+                               asp-controller="Admin"
+                               asp-action="Statistics">
+                                Statistics
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item"
+                            asp-controller="Admin"
+                            asp-action="Search">
+                                Advanced Search
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            }
+
+
+        </div>
+    </nav>
 </body>
 </html>

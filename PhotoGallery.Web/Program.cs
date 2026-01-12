@@ -93,7 +93,7 @@ namespace PhotoGallery.Web
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
+                pattern: "{controller=Gallery}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
             app.MapRazorPages(); // register / login pages

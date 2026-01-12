@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.DTOs;
+using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
 
 namespace PhotoGallery.Infrastructure.Queries
@@ -58,7 +59,7 @@ namespace PhotoGallery.Infrastructure.Queries
             var query = _context.Photos
                 .Include(p => p.User)
                 .Include(p => p.Hashtags)
-                    .ThenInclude(ph => ph.Hashtag)
+                .ThenInclude(ph => ph.Hashtag)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(criteria.AuthorEmail))
@@ -68,8 +69,10 @@ namespace PhotoGallery.Infrastructure.Queries
 
             if (!string.IsNullOrWhiteSpace(criteria.Hashtag))
             {
-                var tag = criteria.Hashtag.ToLowerInvariant();
-                query = query.Where(p => p.Hashtags.Any(h => h.Hashtag.Value == tag));
+                var hashtag = criteria.Hashtag.ToLowerInvariant();
+                query = query.Where(p =>
+                    p.Hashtags.Any(h =>
+                        EF.Functions.Like(h.Hashtag.Value, $"%{hashtag}%")));
             }
 
             if (criteria.UploadedFrom.HasValue)
@@ -97,7 +100,7 @@ namespace PhotoGallery.Infrastructure.Queries
                 .Select(p => new PhotoListItemDto
                 {
                     Id = p.Id,
-                    ThumbnailUrl = string.IsNullOrEmpty(p.ThumbnailStorageKey)
+                    ThumbnailUrl = (p.ThumbnailStorageKey == null || p.ThumbnailStorageKey == "")
                         ? "/images/no-thumbnail.png"
                         : "/uploads/" + p.ThumbnailStorageKey,
                     Description = p.Description,

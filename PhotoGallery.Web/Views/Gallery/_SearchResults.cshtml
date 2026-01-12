@@ -1,0 +1,33 @@
+﻿@model IEnumerable<PhotoGallery.Application.DTOs.PhotoListItemDto>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No results found.</p>
+}
+else
+{
+    <div class="d-flex flex-column align-items-center">
+        @foreach (var photo in Model)
+        {
+            <div class="photo-card mb-4">
+
+                <img src="@photo.ThumbnailUrl" class="photo-image" />
+
+                <h6 class="mt-2">@photo.Description</h6>
+
+                <div class="text-muted">
+                    @foreach (var tag in photo.Hashtags)
+                    {
+                        <span class="me-2">#@tag</span>
+                    }
+                </div>
+
+                <div class="photo-meta d-flex justify-content-between">
+                    <small>@photo.AuthorEmail</small>
+                    <small>@photo.UploadedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                </div>
+
+            </div>
+        }
+    </div>
+}

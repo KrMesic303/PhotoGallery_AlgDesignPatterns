@@ -2,8 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PhotoGallery.Application.Abstractions;
+using PhotoGallery.Application.DTOs;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
+using PhotoGallery.Web.ViewModels;
 
 namespace PhotoGallery.Web.Controllers
 {
@@ -12,11 +15,13 @@ namespace PhotoGallery.Web.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IPhotoQueryService _photos;
 
-        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IPhotoQueryService photos)
         {
             _context = context;
             _userManager = userManager;
+            _photos = photos;
         }
 
         public async Task<IActionResult> Users()
@@ -73,7 +78,7 @@ namespace PhotoGallery.Web.Controllers
         }
         public async Task<IActionResult> Statistics()
         {
-            var stats = new
+            var stats = new AdminStatisticsViewModel
             {
                 Users = await _context.Users.CountAsync(),
                 Photos = await _context.Photos.CountAsync(),
@@ -81,6 +86,21 @@ namespace PhotoGallery.Web.Controllers
             };
 
             return View(stats);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Administrator")]
+        public IActionResult Search()
+        {
+            return View(new PhotoSearchCriteriaDto());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> Search(PhotoSearchCriteriaDto criteria)
+        {
+            var results = await _photos.SearchAsync(criteria);
+            return View("SearchResults", results);
         }
     }
 }

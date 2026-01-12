@@ -1,4 +1,4 @@
-namespace PhotoGallery.Web.Models
+namespace PhotoGallery.Web.ViewModels
 {
     public class ErrorViewModel
     {

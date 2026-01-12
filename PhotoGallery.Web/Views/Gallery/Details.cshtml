@@ -1,21 +1,50 @@
 ﻿@model PhotoGallery.Application.DTOs.PhotoDetailsDto
 
-<h3>Photo</h3>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
 
-<img src="@Model.ImageUrl" class="img-fluid mb-3" />
+                    <img src="@Model.ImageUrl"
+                         alt="Photo"
+                         class="img-fluid d-block mx-auto mb-3 photo-img" />
 
-<p>@Model.Description</p>
+                    <p class="mb-3">@Model.Description</p>
 
-<p>
-    Uploaded by <strong>@Model.AuthorEmail</strong><br />
-    @Model.UploadedAt
-</p>
+                    <div class="mb-3">
+                        @foreach (var tag in Model.Hashtags)
+                        {
+                            <span class="badge bg-secondary me-1 mb-1">#@tag</span>
+                        }
+                    </div>
 
-<p>
-    @foreach (var tag in Model.Hashtags)
-    {
-        <span class="badge bg-secondary">#@tag</span>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Photos"
+                           asp-action="Edit"
+                           asp-route-id="@Model.Id"
+                           class="btn btn-sm btn-outline-primary mb-3">
+                            Edit
+                        </a>
+                    }
+
+                    <p class="mb-3">
+                        Uploaded by <strong>@Model.AuthorEmail</strong><br />
+                        @Model.UploadedAt
+                    </p>
+
+                    <a asp-action="Index">Back to gallery</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .photo-img {
+        width: 564px;
+        height: 564px;
+        object-fit: contain;
     }
-</p>
-
-<a asp-action="Index">Back to gallery</a>
+</style>

@@ -6,6 +6,7 @@ using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
 using PhotoGallery.Infrastructure.ImageProcessing;
+using PhotoGallery.Web.ViewModels;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -142,6 +143,81 @@ namespace PhotoGallery.Web.Controllers
             return RedirectToAction("Index", "Gallery");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var photo = await _context.Photos
+                .Include(p => p.Hashtags)
+                .ThenInclude(ph => ph.Hashtag)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (photo == null)
+                return NotFound();
+
+            // Authorized user
+            if (photo.UserId != user.Id)
+                return Forbid();
+
+            var model = new EditPhotoViewModel
+            {
+                PhotoId = photo.Id,
+                Description = photo.Description,
+                Hashtags = string.Join(", ", photo.Hashtags.Select(h => h.Hashtag.Value))
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EditPhotoViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
+
+            var photo = await _context.Photos
+                .Include(p => p.Hashtags)
+                .ThenInclude(ph => ph.Hashtag)
+                .FirstOrDefaultAsync(p => p.Id == model.PhotoId);
+
+            if (photo == null)
+                return NotFound();
+
+            // Authorized user
+            if (photo.UserId != user.Id)
+                return Forbid();
+
+            photo.Description = model.Description;
+            
+            photo.Hashtags.Clear();
+            foreach (var tag in (model.Hashtags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var normalized = tag.ToLowerInvariant();
+
+                var hashtag = await _context.Hashtags
+                    .FirstOrDefaultAsync(h => h.Value == normalized)
+                    ?? new Hashtag { Value = normalized };
+
+                photo.Hashtags.Add(new PhotoHashtag { Hashtag = hashtag });
+            }
+
+            await _context.SaveChangesAsync();
+
+            await _auditLogger.LogAsync(user.Id, action: "EDIT_PHOTO_METADATA", entityType: nameof(Photo), entityId: photo.Id.ToString());
+
+            return RedirectToAction("Details", "Gallery", new { id = photo.Id });
+        }
+
+        #region Helper methods
+
         private static void SaveImage(Image image, Stream output, FormatImageProcessor format)
         {
             switch (format.GetExtension())
@@ -157,5 +233,7 @@ namespace PhotoGallery.Web.Controllers
                     break;
             }
         }
+
+        #endregion
     }
 }

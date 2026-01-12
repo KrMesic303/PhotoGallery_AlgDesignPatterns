@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using PhotoGallery.Web.Models;
+using PhotoGallery.Web.ViewModels;
 
 namespace PhotoGallery.Web.Controllers
 {

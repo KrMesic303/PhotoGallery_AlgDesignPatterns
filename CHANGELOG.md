@@ -1,5 +1,9 @@
 # PhotoGallery Application
 
+# 0.0.6
+**Added**
+	- Download option for images
+
 # 0.0.5
 **Added**
 	- Thumbnails and DTO models

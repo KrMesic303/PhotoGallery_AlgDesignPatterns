@@ -12,6 +12,7 @@ using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
+using System.Security.Claims;
 
 namespace PhotoGallery.Web.Controllers
 {
@@ -215,6 +216,73 @@ namespace PhotoGallery.Web.Controllers
 
             return RedirectToAction("Details", "Gallery", new { id = photo.Id });
         }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> Download(int id)
+        {
+            var photo = await _context.Photos.FindAsync(id);
+            if (photo == null)
+                return NotFound();
+
+            var model = new DownloadPhotoViewModel
+            {
+                PhotoId = id
+            };
+
+            return View(model);
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> Download(DownloadPhotoViewModel model)
+        {
+            var photo = await _context.Photos.FindAsync(model.PhotoId);
+            if (photo == null)
+                return NotFound();
+
+            if (model.DownloadOriginal)
+            {
+                var originalStream = await _storage.GetAsync(photo.StorageKey);
+                return File(
+                    originalStream,
+                    photo.ContentType,
+                    photo.OriginalFileName);
+            }
+
+            using var sourceStream = await _storage.GetAsync(photo.StorageKey);
+            using var image = await Image.LoadAsync(sourceStream);
+
+            var pipeline = new ImageProcessingPipeline();
+
+            if (model.Resize.HasValue)
+            {
+                pipeline.AddProcessor(new ResizeImageProcessor(model.Resize.Value, model.Resize.Value));
+            }
+
+            var formatProcessor = new FormatImageProcessor(model.Format);
+            pipeline.AddProcessor(formatProcessor);
+
+            var processedImage = pipeline.Execute(image);
+
+            var output = new MemoryStream();
+            SaveImage(processedImage, output, formatProcessor);
+            output.Position = 0;
+
+            var fileName = Path.GetFileNameWithoutExtension(photo.OriginalFileName) + formatProcessor.GetExtension();
+
+            await _auditLogger.LogAsync(
+                userId: User.Identity?.IsAuthenticated == true
+                    ? User.FindFirstValue(ClaimTypes.NameIdentifier)!
+                    : "ANONYMOUS",
+                action: "DOWNLOAD_PHOTO",
+                entityType: nameof(Photo),
+                entityId: photo.Id.ToString());
+
+
+            return File(output, "application/octet-stream", fileName);
+        }
+
 
         #region Helper methods
 

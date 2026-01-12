@@ -29,6 +29,13 @@
                         </a>
                     }
 
+                    <a asp-controller="Photos"
+                       asp-action="Download"
+                       asp-route-id="@Model.Id"
+                       class="btn btn-sm btn-outline-success">
+                        Download
+                    </a>
+
                     <p class="mb-3">
                         Uploaded by <strong>@Model.AuthorEmail</strong><br />
                         @Model.UploadedAt

@@ -1,0 +1,40 @@
+﻿@model PhotoGallery.Web.ViewModels.DownloadPhotoViewModel
+
+<h3>Download Photo</h3>
+
+<form asp-action="Download" method="post">
+    <input type="hidden" asp-for="PhotoId" />
+
+    <div class="form-check mb-3">
+        <input asp-for="DownloadOriginal" class="form-check-input" />
+        <label asp-for="DownloadOriginal" class="form-check-label">
+            Download original photo
+        </label>
+    </div>
+
+    <hr />
+
+    <h5>Processed download</h5>
+
+    <div class="mb-3">
+        <label asp-for="Resize" class="form-label"></label>
+        <input asp-for="Resize" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Format" class="form-label"></label>
+        <select asp-for="Format" class="form-select">
+            <option value="jpg">JPG</option>
+            <option value="png">PNG</option>
+            <option value="bmp">BMP</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Download</button>
+    <a asp-controller="Gallery"
+       asp-action="Details"
+       asp-route-id="@Model.PhotoId"
+       class="btn btn-secondary">
+        Cancel
+    </a>
+</form>

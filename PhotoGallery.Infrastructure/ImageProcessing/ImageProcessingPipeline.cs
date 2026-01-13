@@ -3,7 +3,7 @@ using SixLabors.ImageSharp;
 
 namespace PhotoGallery.Infrastructure.ImageProcessing
 {
-    // Decorator pattern
+    // Decorator pattern -> but used in Factory
     public class ImageProcessingPipeline
     {
         private readonly IList<IImageProcessor> _processors = new List<IImageProcessor>();

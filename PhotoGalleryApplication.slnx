@@ -14,5 +14,6 @@
   <Folder Name="/SolutionFiles/">
     <File Path="../UCA-AADBDT-Project.pdf" />
     <File Path="CHANGELOG.md" />
+    <File Path="README.md" />
   </Folder>
 </Solution>

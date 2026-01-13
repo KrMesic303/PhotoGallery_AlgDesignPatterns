@@ -20,10 +20,10 @@ namespace PhotoGallery.Web
             // MVC
             builder.Services.AddControllersWithViews();
 
-            // DbContext
+            // Database
             builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // Identity (on .NET 10)
+            // Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = false;
@@ -38,19 +38,34 @@ namespace PhotoGallery.Web
             .AddDefaultTokenProviders()
             .AddDefaultUI();
 
+            // External Authentication
+            builder.Services.AddAuthentication()
+                .AddGoogle(options =>
+                {
+                    options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+                    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+                })
+                .AddGitHub(options =>
+                {
+                    options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"]!;
+                    options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"]!;
+                    options.Scope.Add("user:email");
+                });
+
             // Strategy pattern - switching between different behaviours (storage, policies, logging)
             builder.Services.AddScoped<IImageProcessorFactory, ImageProcessorFactory>();
-
             builder.Services.AddScoped<IAuditLogger, AuditLogger>();
             builder.Services.AddScoped<IUploadQuotaService, UploadQuotaService>();
             builder.Services.AddScoped<IPhotoUploadPolicy, PhotoUploadPolicy>();
             builder.Services.AddScoped<IPhotoQueryService, PhotoQueryService>();
 
+            // Storage abstraction (can swap to S3 later)
             // Factory pattern (DI registrations) - Storage and image processing configuraiton
             builder.Services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();
 
             var app = builder.Build();
 
+            // Seed Roles / Admin user
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -58,7 +73,6 @@ namespace PhotoGallery.Web
                 var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                 var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-                // Ensure Administrator role exists
                 const string adminRole = "Administrator";
 
                 if (!await roleManager.RoleExistsAsync(adminRole))
@@ -66,10 +80,9 @@ namespace PhotoGallery.Web
                     await roleManager.CreateAsync(new IdentityRole(adminRole));
                 }
 
-                // Assign Administrator role to a specific user (your email)
-                var adminEmail = "admin@test.com"; // CHANGE THIS
-
+                var adminEmail = "admin@test.com";
                 var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
                 if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, adminRole))
                 {
                     await userManager.AddToRoleAsync(adminUser, adminRole);
@@ -84,15 +97,13 @@ namespace PhotoGallery.Web
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
             app.UseRouting();
 
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapStaticAssets();
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseRouting();
 
             app.MapControllerRoute(
                 name: "default",

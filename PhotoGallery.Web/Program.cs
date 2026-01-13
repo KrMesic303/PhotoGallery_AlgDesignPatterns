@@ -59,9 +59,18 @@ namespace PhotoGallery.Web
             builder.Services.AddScoped<IPhotoUploadPolicy, PhotoUploadPolicy>();
             builder.Services.AddScoped<IPhotoQueryService, PhotoQueryService>();
 
-            // Storage abstraction (can swap to S3 later)
+            // Storage abstraction (can add S3 storage, or example like Google cloud storage)
             // Factory pattern (DI registrations) - Storage and image processing configuraiton
-            builder.Services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();
+            var provider = builder.Configuration["Storage:Provider"] ?? "Local";
+
+            if (provider.Equals("Gcs", StringComparison.OrdinalIgnoreCase))
+            {
+                builder.Services.AddScoped<IPhotoStorageService, PhotoGallery.Infrastructure.Storage.GcsPhotoStorageService>();
+            }
+            else
+            {
+                builder.Services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();
+            }
 
             var app = builder.Build();
 

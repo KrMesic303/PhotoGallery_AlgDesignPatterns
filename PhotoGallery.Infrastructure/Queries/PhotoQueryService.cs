@@ -29,7 +29,7 @@ namespace PhotoGallery.Infrastructure.Queries
                     // TODO: fallback for now, later we can return it as thumbnails will be added
                     ThumbnailUrl = string.IsNullOrEmpty(p.ThumbnailStorageKey)
                         ? "/images/no-thumbnail.png"
-                        : "/uploads/" + p.ThumbnailStorageKey,
+                        : $"/Files/Thumbnail/{p.Id}",
                     Description = p.Description,
                     AuthorEmail = p.User.Email!,
                     UploadedAt = p.UploadedAtUtc,
@@ -45,7 +45,7 @@ namespace PhotoGallery.Infrastructure.Queries
                 .Select(p => new PhotoDetailsDto
                 {
                     Id = p.Id,
-                    ImageUrl = "/uploads/" + p.StorageKey,
+                    ImageUrl = $"/Files/Photo/{p.Id}",
                     Description = p.Description,
                     AuthorEmail = p.User.Email!,
                     UploadedAt = p.UploadedAtUtc,
@@ -101,9 +101,9 @@ namespace PhotoGallery.Infrastructure.Queries
                 .Select(p => new PhotoListItemDto
                 {
                     Id = p.Id,
-                    ThumbnailUrl = (p.ThumbnailStorageKey == null || p.ThumbnailStorageKey == "")
+                     ThumbnailUrl = string.IsNullOrEmpty(p.ThumbnailStorageKey)
                         ? "/images/no-thumbnail.png"
-                        : "/uploads/" + p.ThumbnailStorageKey,
+                        : $"/Files/Thumbnail/{p.Id}",
                     Description = p.Description,
                     AuthorEmail = p.User.Email!,
                     UploadedAt = p.UploadedAtUtc,

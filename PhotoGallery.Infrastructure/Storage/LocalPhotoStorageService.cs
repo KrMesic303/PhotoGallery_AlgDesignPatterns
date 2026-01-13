@@ -3,7 +3,7 @@ using PhotoGallery.Application.Abstractions;
 
 namespace PhotoGallery.Infrastructure.Storage
 {
-    public class LocalPhotoStorageService : IPhotoStorageService
+    public sealed class LocalPhotoStorageService : IPhotoStorageService
     {
         private readonly string _rootPath;
 

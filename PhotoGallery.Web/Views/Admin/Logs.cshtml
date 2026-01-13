@@ -1,8 +1,8 @@
 ﻿@model IEnumerable<PhotoGallery.Domain.Entities.AuditLog>
 
-<h3>Audit Logs</h3>
+<h3 class="mb-3">Audit Logs</h3>
 
-<table class="table table-sm table-hover">
+<table class="table table-sm table-hover pg-table">
     <thead>
         <tr>
             <th>Time</th>
@@ -16,11 +16,27 @@
         @foreach (var log in Model)
         {
             <tr>
-                <td>@log.CreatedAtUtc</td>
-                <td>@log.UserId</td>
-                <td>@log.Action</td>
-                <td>@log.EntityType</td>
-                <td>@log.EntityId</td>
+                <td class="text-nowrap">
+                    @log.CreatedAtUtc.ToString("dd.MM.yyyy HH:mm:ss")
+                </td>
+
+                <td class="text-break">
+                    @log.UserId
+                </td>
+
+                <td>
+                    <span class="badge bg-secondary">
+                        @log.Action
+                    </span>
+                </td>
+
+                <td class="text-muted">
+                    @log.EntityType
+                </td>
+
+                <td class="text-muted text-nowrap">
+                    @log.EntityId
+                </td>
             </tr>
         }
     </tbody>

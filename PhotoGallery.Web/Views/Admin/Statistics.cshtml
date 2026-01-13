@@ -5,67 +5,73 @@
 <!-- SUMMARY CARDS -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card text-center shadow-sm">
+        <div class="card text-center">
             <div class="card-body">
-                <h6 class="text-muted">Users</h6>
-                <h3>@Model.Users</h3>
+                <div class="text-muted small">Users</div>
+                <div class="fs-3 fw-semibold">@Model.Users</div>
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card text-center shadow-sm">
+        <div class="card text-center">
             <div class="card-body">
-                <h6 class="text-muted">Photos</h6>
-                <h3>@Model.Photos</h3>
+                <div class="text-muted small">Photos</div>
+                <div class="fs-3 fw-semibold">@Model.Photos</div>
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card text-center shadow-sm">
+        <div class="card text-center">
             <div class="card-body">
-                <h6 class="text-muted">Total Uploads</h6>
-                <h3>@Model.TotalUploads</h3>
+                <div class="text-muted small">Total Uploads</div>
+                <div class="fs-3 fw-semibold">@Model.TotalUploads</div>
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="card text-center shadow-sm">
+        <div class="card text-center">
             <div class="card-body">
-                <h6 class="text-muted">Total Downloads</h6>
-                <h3>@Model.TotalDownloads</h3>
+                <div class="text-muted small">Total Downloads</div>
+                <div class="fs-3 fw-semibold">@Model.TotalDownloads</div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- STORAGE STATS -->
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-5">
     <div class="col-md-4">
-        <div class="card text-center shadow-sm">
+        <div class="card text-center">
             <div class="card-body">
-                <h6 class="text-muted">Storage Used</h6>
-                <h4>@(Model.StorageUsed / 1024 / 1024) MB</h4>
+                <div class="text-muted small">Storage Used</div>
+                <div class="fs-5 fw-semibold">
+                    @(Model.StorageUsed / 1024 / 1024) MB
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card text-center shadow-sm">
+        <div class="card text-center">
             <div class="card-body">
-                <h6 class="text-muted">Largest Photo</h6>
-                <h4>@(Model.LargestPhotoSize / 1024 / 1024) MB</h4>
+                <div class="text-muted small">Largest Photo</div>
+                <div class="fs-5 fw-semibold">
+                    @(Model.LargestPhotoSize / 1024 / 1024) MB
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-4">
-        <div class="card text-center shadow-sm">
+        <div class="card text-center">
             <div class="card-body">
-                <h6 class="text-muted">Average Photo Size</h6>
-                <h4>@(string.Format("{0:F2}", Model.AveragePhotoSize / 1024.0 / 1024.0)) MB</h4>
+                <div class="text-muted small">Average Photo Size</div>
+                <div class="fs-5 fw-semibold">
+                    @(Model.AveragePhotoSize / 1024 / 1024).ToString("F2") MB
+                </div>
             </div>
         </div>
     </div>
@@ -74,10 +80,10 @@
 <!-- TOP DOWNLOADED PHOTOS -->
 @if (Model.TopDownloadedPhotos.Any())
 {
-    <h4 class="mt-4">Top Downloaded Photos</h4>
+    <h4 class="mt-4 mb-3">Top Downloaded Photos</h4>
 
-    <table class="table table-bordered table-sm align-middle">
-        <thead class="table-light">
+    <table class="table table-sm table-hover pg-table">
+        <thead>
             <tr>
                 <th>Description</th>
                 <th class="text-center">Downloads</th>
@@ -88,7 +94,9 @@
             {
                 <tr>
                     <td>@photo.Description</td>
-                    <td class="text-center">@photo.DownloadCount</td>
+                    <td class="text-center fw-semibold">
+                        @photo.DownloadCount
+                    </td>
                 </tr>
             }
         </tbody>
@@ -98,10 +106,10 @@
 <!-- STORAGE PER USER -->
 @if (Model.StoragePerUser.Any())
 {
-    <h4 class="mt-4">Storage Usage Per User</h4>
+    <h4 class="mt-5 mb-3">Storage Usage Per User</h4>
 
-    <table class="table table-bordered table-sm align-middle">
-        <thead class="table-light">
+    <table class="table table-sm table-hover pg-table">
+        <thead>
             <tr>
                 <th>User</th>
                 <th class="text-end">Storage (MB)</th>
@@ -112,7 +120,7 @@
             {
                 <tr>
                     <td>@user.UserEmail</td>
-                    <td class="text-end">
+                    <td class="text-end fw-semibold">
                         @(user.StorageUsed / 1024 / 1024)
                     </td>
                 </tr>

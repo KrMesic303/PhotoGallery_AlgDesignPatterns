@@ -4,28 +4,54 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - PhotoGallery.Web</title>
-    <script type="importmap"></script>
+
+    <!-- Restore theme BEFORE render -->
+    <script>
+        (function () {
+            const theme = localStorage.getItem("pg-theme");
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/PhotoGallery.Web.styles.css" asp-append-version="true" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" 
-                asp-controller="Gallery" 
-                asp-action="Index">PhotoGallery</a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+<body class="pb-bottom-nav"
+      data-controller="@ViewContext.RouteData.Values["controller"]"
+      data-action="@ViewContext.RouteData.Values["action"]">
+
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid d-flex align-items-center">
+
+                <!-- Brand -->
+                <a class="navbar-brand"
+                   asp-controller="Gallery"
+                   asp-action="Index">
+                    PhotoGallery
+                </a>
+
+                <!-- Right side controls -->
+                <div class="d-flex align-items-center ms-auto gap-2">
+
+                    <!-- Theme toggle -->
+                    <button id="themeToggle"
+                            class="btn btn-sm btn-outline-secondary"
+                            type="button"
+                            title="Toggle dark mode">
+                        🌙
+                    </button>
 
                     <partial name="_LoginPartial" />
+                </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -39,108 +65,106 @@
 
     <partial name="~/Views/Gallery/_QuickSearchModal.cshtml" />
 
-    <nav class="navbar navbar-light bg-white fixed-bottom border-top">
-        <div class="container-fluid d-flex justify-content-around text-center">
+    <!-- Bottom Navigation -->
+    <nav class="pg-bottom-nav">
+        <a class="pg-nav-item" asp-controller="Gallery" asp-action="Index" data-nav="home">
+            <img src="~/icons/home.png" />
+            <span>Home</span>
+        </a>
 
-            <!-- HOME -->
-            <a class="nav-link"
-               asp-controller="Gallery"
-               asp-action="Index">
-                <div>🏠</div>
-                <small>Home</small>
+        <a class="pg-nav-item" href="#" data-bs-toggle="modal" data-bs-target="#quickSearchModal" data-nav="search">
+            <img src="~/icons/search.png" />
+            <span>Search</span>
+        </a>
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="pg-nav-item" asp-controller="Photos" asp-action="Upload" data-nav="upload">
+                <img src="~/icons/upload.png" />
+                <span>Upload</span>
             </a>
 
-            <!-- SEARCH -->
-            <a class="nav-link"
-               href="#"
-               data-bs-toggle="modal"
-               data-bs-target="#quickSearchModal">
-                <div>🔍</div>
-                <small>Search</small>
+            <a class="pg-nav-item" asp-area="Identity" asp-page="/Account/Manage/Index" data-nav="profile">
+                <img src="~/icons/user.png" />
+                <span>Profile</span>
             </a>
+        }
+        else
+        {
+            <a class="pg-nav-item" asp-area="Identity" asp-page="/Account/Login" data-nav="login">
+                <img src="~/icons/user.png" />
+                <span>Login</span>
+            </a>
+        }
 
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <!-- UPLOAD -->
-                <a class="nav-link"
-                   asp-controller="Photos"
-                   asp-action="Upload">
-                    <div>⬆️</div>
-                    <small>Upload</small>
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="dropup pg-nav-admin">
+                <a class="pg-nav-item dropdown-toggle text-danger"
+                   href="#"
+                   data-bs-toggle="dropdown"
+                   data-nav="admin">
+                    <img src="~/icons/admin-panel.png" />
+                    <span>Admin</span>
                 </a>
 
-                <!-- PROFILE -->
-                <a class="nav-link"
-                   asp-area="Identity"
-                   asp-page="/Account/Manage/Index">
-                    <div>👤</div>
-                    <small>Profile</small>
-                </a>
-            }
-            else
-            {
-                <!-- LOGIN -->
-                <a class="nav-link"
-                   asp-area="Identity"
-                   asp-page="/Account/Login">
-                    <div>🔐</div>
-                    <small>Login</small>
-                </a>
-            }
-
-            @if (User.IsInRole("Administrator"))
-            {
-                <div class="dropup">
-                    <a class="nav-link dropdown-toggle text-danger"
-                       href="#"
-                       data-bs-toggle="dropdown"
-                       role="button">
-                        <div>🛠</div>
-                        <small>Admin</small>
-                    </a>
-
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item"
-                               asp-controller="Admin"
-                               asp-action="Users">
-                                Users
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item"
-                               asp-controller="Admin"
-                               asp-action="Photos">
-                                Photos
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item"
-                               asp-controller="Admin"
-                               asp-action="Logs">
-                                Logs
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item"
-                               asp-controller="Admin"
-                               asp-action="Statistics">
-                                Statistics
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item"
-                            asp-controller="Admin"
-                            asp-action="Search">
-                                Advanced Search
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            }
-
-
-        </div>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Users">Users</a></li>
+                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Photos">Photos</a></li>
+                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Logs">Logs</a></li>
+                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Statistics">Statistics</a></li>
+                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Search">Advanced Search</a></li>
+                </ul>
+            </div>
+        }
     </nav>
+
+    <!-- Active bottom nav -->
+    <script>
+        (function () {
+            const controller = document.body.dataset.controller?.toLowerCase();
+            const map = {
+                gallery: "home",
+                photos: "upload",
+                admin: "admin",
+                account: "profile"
+            };
+
+            const key = map[controller];
+            if (key) {
+                document.querySelector(`.pg-nav-item[data-nav="${key}"]`)?.classList.add("active");
+            }
+        })();
+    </script>
+
+    <!-- Theme toggle logic -->
+    <script>
+        (function () {
+            const root = document.documentElement;
+            const toggle = document.getElementById("themeToggle");
+
+            function updateIcon() {
+                toggle.textContent =
+                    root.getAttribute("data-theme") === "dark" ? "☀️" : "🌙";
+            }
+
+            updateIcon();
+
+            toggle?.addEventListener("click", () => {
+                const isDark = root.getAttribute("data-theme") === "dark";
+
+                if (isDark) {
+                    root.removeAttribute("data-theme");
+                    localStorage.removeItem("pg-theme");
+                } else {
+                    root.setAttribute("data-theme", "dark");
+                    localStorage.setItem("pg-theme", "dark");
+                }
+
+                updateIcon();
+            });
+        })();
+    </script>
+
 </body>
 </html>

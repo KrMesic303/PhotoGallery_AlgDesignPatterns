@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.DTOs;
-using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
 
 namespace PhotoGallery.Infrastructure.Queries
@@ -60,7 +59,6 @@ namespace PhotoGallery.Infrastructure.Queries
                 .Select(p => new PhotoListItemDto
                 {
                     Id = p.Id,
-                    // TODO: fallback for now, later we can return it as thumbnails will be added
                     ThumbnailUrl = string.IsNullOrEmpty(p.ThumbnailStorageKey)
                         ? "/images/no-thumbnail.png"
                         : $"/Files/Thumbnail/{p.Id}",

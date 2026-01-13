@@ -88,10 +88,15 @@
 </div>
 
 <!-- FULLSCREEN MODAL -->
-<div class="modal fade" id="fullscreenPhotoModal" tabindex="-1">
+<div class="modal fade"
+     id="fullscreenPhotoModal"
+     tabindex="-1"
+     aria-label="Fullscreen image (click anywhere to close)">
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content bg-black">
-            <div class="modal-body p-0 d-flex justify-content-center align-items-center">
+            <div class="modal-body p-0 d-flex justify-content-center align-items-center"
+                 data-bs-dismiss="modal"
+                 style="cursor: zoom-out;">
                 <img src="@Model.ImageUrl"
                      class="img-fluid"
                      style="max-height: 100vh; object-fit: contain;" />
@@ -103,7 +108,7 @@
 <style>
     .photo-img-full {
         width: 100%;
-        max-height: 60vh;
+        max-height: min(70vh, 800px);
         object-fit: contain;
         display: block;
         margin: 0 auto;

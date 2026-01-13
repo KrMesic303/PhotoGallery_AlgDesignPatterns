@@ -1,54 +1,101 @@
+/* =========================================================
+   THEME VARIABLES (Single Source of Truth)
+   ========================================================= */
+
+:root {
+    /* Brand */
+    --pg-primary: #2563eb;
+    --pg-primary-hover: #1d4ed8;
+    --pg-accent: #22c55e;
+    /* Surfaces */
+    --pg-bg: #f8fafc;
+    --pg-surface: #ffffff;
+    --pg-surface-alt: #f1f5f9;
+    --pg-border: #e5e7eb;
+    /* Text */
+    --pg-text: #0f172a;
+    --pg-text-muted: #64748b;
+    /* Danger */
+    --pg-danger: #dc2626;
+}
+
+    :root[data-theme="dark"] {
+        --pg-primary: #60a5fa;
+        --pg-primary-hover: #3b82f6;
+        --pg-accent: #4ade80;
+        --pg-bg: #0a0f25;
+        --pg-surface: #020617;
+        --pg-surface-alt: #24225f;
+        --pg-border: #0b1331;
+        --pg-text: #e5e7eb;
+        --pg-text-muted: #94a3b8;
+        --pg-danger: #f87171;
+    }
+
+/* =========================================================
+   BASE / RESET
+   ========================================================= */
+
 html {
-  font-size: 14px;
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    html {
+        font-size: 16px;
+    }
 }
 
 body {
-  padding-bottom: 100px;
+    background-color: var(--pg-bg);
+    color: var(--pg-text);
+    padding-bottom: 100px;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* =========================================================
+   NAVBAR (Top)
+   ========================================================= */
+
+.navbar {
+    background-color: var(--pg-surface) !important;
+    border-bottom: 1px solid var(--pg-border);
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+    .navbar-brand,
+    .navbar .nav-link,
+    .navbar-text {
+        color: var(--pg-text) !important;
+    }
+
+        .navbar .nav-link:hover {
+            color: var(--pg-primary) !important;
+        }
+
+/* =========================================================
+   CARDS & SURFACES
+   ========================================================= */
+
+.card {
+    background-color: var(--pg-surface-alt);
+    border: 1px solid var(--pg-border);
+    border-radius: 16px;
+    color: var(--pg-text);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
 }
 
-.upload-fab {
-    position: fixed;
-    bottom: 80px;
-    right: 30px;
-    width: 56px;
-    height: 56px;
-    font-size: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
+/* Photo cards (Gallery index) */
 .photo-card {
-    width: 100%;
+    background-color: var(--pg-surface-alt);
+    border-radius: 16px;
+    padding: 1rem;
     max-width: 420px;
-    padding: 12px;
 }
+
+/* =========================================================
+   IMAGES
+   ========================================================= */
 
 .photo-image {
     width: 100%;
@@ -58,16 +105,284 @@ body {
     margin: 0 auto;
 }
 
+.photo-img-full {
+    max-width: 100%;
+    max-height: min(70vh, 800px);
+    object-fit: contain;
+    margin: auto;
+    display: block;
+    cursor: zoom-in;
+    background-color: rgba(255,255,255,0.03);
+}
+
+/* =========================================================
+   PHOTO META
+   ========================================================= */
+
 .photo-meta {
     margin-top: 8px;
     font-size: 0.85rem;
-    color: #666;
+    color: var(--pg-text-muted);
 }
 
-.photo-card {
-    border-bottom: 1px solid #eee;
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn-primary {
+    background-color: var(--pg-primary);
+    border-color: var(--pg-primary);
 }
 
-.photo-image:hover {
-    opacity: 0.95;
+    .btn-primary:hover {
+        background-color: var(--pg-primary-hover);
+        border-color: var(--pg-primary-hover);
+    }
+
+.btn-outline-primary {
+    color: var(--pg-primary);
+    border-color: var(--pg-primary);
 }
+
+    .btn-outline-primary:hover {
+        background-color: var(--pg-primary);
+        color: #fff;
+    }
+
+.btn-outline-danger {
+    color: var(--pg-danger);
+    border-color: var(--pg-danger);
+}
+
+/* =========================================================
+   BADGES
+   ========================================================= */
+
+.badge {
+    font-weight: 500;
+}
+
+    .badge.bg-secondary {
+        background-color: rgba(255,255,255,0.12);
+        color: var(--pg-text);
+    }
+
+/* =========================================================
+   DROPDOWNS (Admin, etc.)
+   ========================================================= */
+
+.dropdown-menu {
+    background-color: var(--pg-surface-alt);
+    border: 1px solid var(--pg-border);
+    border-radius: 12px;
+}
+
+.dropdown-item {
+    color: var(--pg-text);
+}
+
+    .dropdown-item:hover,
+    .dropdown-item:focus {
+        background-color: rgba(255,255,255,0.06);
+        color: var(--pg-primary);
+    }
+
+/* =========================================================
+   BOTTOM NAVIGATION
+   ========================================================= */
+
+.pb-bottom-nav {
+    padding-bottom: 72px;
+}
+
+.pg-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: var(--pg-surface);
+    border-top: 1px solid var(--pg-border);
+    padding: 0.45rem 0;
+    z-index: 1000;
+}
+
+.pg-nav-item {
+    text-decoration: none;
+    color: var(--pg-text-muted);
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 64px;
+}
+
+    .pg-nav-item span {
+        line-height: 1;
+    }
+
+    .pg-nav-item.active {
+        color: var(--pg-primary);
+        font-weight: 600;
+    }
+
+    /* Icons */
+    .pg-nav-item img {
+        width: 22px;
+        height: 22px;
+        display: block;
+        filter: brightness(0) saturate(100%) invert(80%);
+    }
+
+:root[data-theme="dark"] .pg-nav-item img {
+    filter: invert(100%);
+}
+
+.pg-nav-item.active img {
+    filter: brightness(0) saturate(100%) invert(31%) sepia(92%) saturate(1883%) hue-rotate(213deg);
+}
+
+:root[data-theme="dark"] .pg-nav-item.active img {
+    filter: brightness(0) saturate(100%) invert(60%) sepia(98%) saturate(1300%) hue-rotate(200deg);
+}
+
+/* =========================================================
+   FORMS
+   ========================================================= */
+
+.form-control,
+.form-select {
+    background-color: var(--pg-surface);
+    border-color: var(--pg-border);
+    color: var(--pg-text);
+}
+
+    .form-control::placeholder {
+        color: var(--pg-text-muted);
+    }
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+a:hover {
+    text-decoration: none;
+}
+
+/* =========================================================
+   TABLES
+   ========================================================= */
+
+.pg-table {
+    background-color: var(--pg-surface-alt);
+    border-radius: 12px;
+    overflow: hidden;
+    color: var(--pg-text);
+}
+
+    /* Header */
+    .pg-table thead th {
+        background-color: transparent;
+        color: var(--pg-text-muted);
+        font-weight: 600;
+        border-bottom: 1px solid var(--pg-border);
+    }
+
+    /* Rows */
+    .pg-table tbody tr {
+        border-bottom: 1px solid var(--pg-border);
+    }
+
+        .pg-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        /* Zebra striping – subtle */
+        .pg-table tbody tr:nth-child(even) {
+            background-color: rgba(255,255,255,0.03);
+        }
+
+/* Dark mode striping */
+:root[data-theme="dark"] .pg-table tbody tr:nth-child(even) {
+    background-color: rgba(255,255,255,0.04);
+}
+
+/* =========================================================
+   TABLE FORMS
+   ========================================================= */
+
+.pg-table .form-select,
+.pg-table .form-control {
+    background-color: var(--pg-surface);
+    border-color: var(--pg-border);
+    color: var(--pg-text);
+}
+
+    .pg-table .form-select:focus,
+    .pg-table .form-control:focus {
+        border-color: var(--pg-primary);
+        box-shadow: 0 0 0 2px rgba(96,165,250,0.25);
+    }
+
+/* Dark mode inputs */
+:root[data-theme="dark"] .pg-table .form-select,
+:root[data-theme="dark"] .pg-table .form-control {
+    background-color: #020617;
+    color: var(--pg-text);
+}
+
+.pg-table .btn-primary {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+/* =========================================================
+   TABLE ROW STRIPING – NEUTRAL (WHITE / SOFT GRAY)
+   ========================================================= */
+
+/* Light mode */
+.pg-table tbody tr:nth-child(odd) > * {
+    background-color: #ffffff;
+}
+
+.pg-table tbody tr:nth-child(even) > * {
+    background-color: #f3f4f6; /* soft gray (Tailwind gray-100) */
+}
+
+/* Hover (keep as-is, subtle) */
+.pg-table tbody tr:hover > * {
+    background-color: rgba(37, 99, 235, 0.06);
+}
+
+/* Dark mode */
+:root[data-theme="dark"] .pg-table tbody tr:nth-child(odd) > * {
+    background-color: #020617; /* base surface */
+}
+
+:root[data-theme="dark"] .pg-table tbody tr:nth-child(even) > * {
+    background-color: #0b122a; /* soft dark gray-blue */
+}
+
+:root[data-theme="dark"] .pg-table tbody tr:hover > * {
+    background-color: rgba(96, 165, 250, 0.10);
+}
+
+/* =========================================================
+   TABLE TEXT COLOR
+   ========================================================= */
+
+/* Default table text */
+.pg-table th,
+.pg-table td {
+    color: var(--pg-text);
+}
+
+/* Dark mode – force readable white text */
+:root[data-theme="dark"] .pg-table th,
+:root[data-theme="dark"] .pg-table td {
+    color: var(--pg-text);
+}
+

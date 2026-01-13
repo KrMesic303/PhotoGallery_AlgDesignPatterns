@@ -9,65 +9,78 @@
 
     @Html.AntiForgeryToken()
 
-    <table class="table table-bordered align-middle">
+    <table class="table pg-table align-middle">
         <thead>
             <tr>
-                <th>
-                    <input type="checkbox" id="selectAll"/>
+                <th class="text-center">
+                    <input type="checkbox" id="selectAll" />
                 </th>
                 <th>Thumbnail</th>
                 <th>User</th>
                 <th>Description</th>
                 <th>Uploaded</th>
-                <th>Actions</th>
+                <th class="text-center">Actions</th>
             </tr>
         </thead>
+
         <tbody>
             @foreach (var photo in Model)
             {
                 <tr>
-                    <td>
+                    <td class="text-center">
                         <input type="checkbox"
                                name="photoIds"
                                value="@photo.Id" />
                     </td>
-                    <td class="text-center align-middle">
+
+                    <td class="text-center">
                         <a asp-controller="Gallery"
                            asp-action="Details"
                            asp-route-id="@photo.Id">
                             <img src="/Files/Thumbnail/@photo.Id"
                                  width="64"
                                  height="64"
-                                 class="rounded object-fit-cover" />
+                                 class="rounded object-fit-cover"
+                                 alt="Thumbnail" />
                         </a>
                     </td>
 
                     <td>@photo.User.Email</td>
-                    <td>@photo.Description</td>
-                    <td>@photo.UploadedAtUtc</td>
+
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(photo.Description))
+                        {
+                            @photo.Description
+                        }
+                        else
+                        {
+                            <span class="text-muted fst-italic">No description</span>
+                        }
+                    </td>
+
+                    <td>@photo.UploadedAtUtc.ToString("dd.MM.yyyy HH:mm")</td>
+
                     <td class="text-nowrap text-center">
-                        <!-- EDIT (GET) -->
-                        <a class="btn btn-sm btn-outline-primary me-2"
+                        <a class="btn btn-sm btn-outline-primary me-1"
                            asp-controller="Gallery"
                            asp-action="Details"
                            asp-route-id="@photo.Id">
                             View
                         </a>
 
-                        <a class="btn btn-sm btn-outline-secondary me-2"
+                        <a class="btn btn-sm btn-outline-secondary me-1"
                            asp-controller="Photos"
                            asp-action="Edit"
                            asp-route-id="@photo.Id">
                             Edit
                         </a>
 
-                        <!-- DELETE (POST) -->
                         <button type="submit"
                                 formaction="@Url.Action("DeletePhoto", "Admin")"
                                 formmethod="post"
                                 name="id"
                                 value="@photo.Id"
-                                class="btn btn-sm btn-danger"
+                                class="btn btn-sm btn-outline-danger"
                                 onclick="return confirm('Delete this photo?');">
                             Delete
                         </button>
@@ -79,11 +92,10 @@
 
     <button type="submit"
             id="bulkDeleteBtn"
-            class="btn btn-danger mt-2"
+            class="btn btn-danger mt-3"
             disabled>
         Delete selected
     </button>
-
 </form>
 
 @section Scripts {

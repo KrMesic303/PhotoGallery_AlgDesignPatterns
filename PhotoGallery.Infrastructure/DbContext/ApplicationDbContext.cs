@@ -18,6 +18,7 @@ namespace PhotoGallery.Infrastructure.DbContext
         public DbSet<Photo> Photos => Set<Photo>();
         public DbSet<Hashtag> Hashtags => Set<Hashtag>();
         public DbSet<PhotoHashtag> PhotoHashtags => Set<PhotoHashtag>();
+        public DbSet<PhotoFilter> PhotoFilters => Set<PhotoFilter>();
 
         // Audit Logs
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -66,6 +67,9 @@ namespace PhotoGallery.Infrastructure.DbContext
                 .HasOne(ph => ph.Hashtag)
                 .WithMany()
                 .HasForeignKey(ph => ph.HashtagId);
+
+            builder.Entity<PhotoFilter>()
+                .HasIndex(f => f.FilterType);
         }
     }
 }

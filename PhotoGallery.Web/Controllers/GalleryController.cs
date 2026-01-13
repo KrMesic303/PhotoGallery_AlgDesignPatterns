@@ -40,21 +40,8 @@ namespace PhotoGallery.Web.Controllers
             if (string.IsNullOrWhiteSpace(query))
                 return PartialView("_SearchResults", new List<PhotoListItemDto>());
 
-            var criteria = new PhotoSearchCriteriaDto();
-
-            if (query.StartsWith("#"))
-            {
-                criteria.Hashtag = query.TrimStart('#').ToLowerInvariant();
-            }
-            else
-            {
-                criteria.AuthorEmail = query;
-            }
-
-            var results = await _photos.SearchAsync(criteria);
+            var results = await _photos.QuickSearchAsync(query.Trim());
             return PartialView("_SearchResults", results);
         }
-
-
     }
 }

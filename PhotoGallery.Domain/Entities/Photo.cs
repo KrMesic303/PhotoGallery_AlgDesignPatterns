@@ -20,6 +20,7 @@
         public ApplicationUser? User { get; set; }
 
         public ICollection<PhotoHashtag> Hashtags { get; set; } = new List<PhotoHashtag>();
+        public ICollection<PhotoFilter> Filters { get; set; } = new List<PhotoFilter>();
         public string ThumbnailStorageKey { get; set; } = string.Empty;
     }
 }

@@ -8,5 +8,7 @@
         public DateTime? UploadedTo { get; set; }
         public long? MinSizeBytes { get; set; }
         public long? MaxSizeBytes { get; set; }
+        public string? FilterType { get; set; }
+        public string? FilterValue { get; set; }
     }
 }

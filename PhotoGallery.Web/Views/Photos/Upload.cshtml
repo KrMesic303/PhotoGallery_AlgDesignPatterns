@@ -53,5 +53,26 @@
         </select>
     </div>
 
+    <div class="mb-3 form-check">
+        <input type="checkbox"
+               name="applySepia"
+               value="true"
+               class="form-check-input"
+               id="sepiaCheck" />
+        <label class="form-check-label" for="sepiaCheck">
+            Apply Sepia
+        </label>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Blur amount (optional)</label>
+        <input type="number"
+               step="0.5"
+               min="0"
+               name="blurAmount"
+               class="form-control"
+               placeholder="e.g. 2.5" />
+    </div>
+
     <button type="submit" class="btn btn-primary">Upload</button>
 </form>

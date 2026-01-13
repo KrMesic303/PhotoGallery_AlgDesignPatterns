@@ -60,7 +60,8 @@ namespace PhotoGallery.Infrastructure.Queries
             var query = _context.Photos
                 .Include(p => p.User)
                 .Include(p => p.Hashtags)
-                .ThenInclude(ph => ph.Hashtag)
+                    .ThenInclude(ph => ph.Hashtag)
+                .Include(p => p.Filters)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(criteria.AuthorEmail))
@@ -96,6 +97,14 @@ namespace PhotoGallery.Infrastructure.Queries
                 query = query.Where(p => p.SizeInBytes <= criteria.MaxSizeBytes.Value);
             }
 
+            if (!string.IsNullOrWhiteSpace(criteria.FilterType) && !string.IsNullOrWhiteSpace(criteria.FilterValue))
+            {
+                query = query.Where(p =>
+                    p.Filters.Any(f =>
+                        f.FilterType.Equals(criteria.FilterType, StringComparison.OrdinalIgnoreCase)
+                        && f.FilterValue.Contains(criteria.FilterValue)));
+            }
+
             return await query
                 .OrderByDescending(p => p.UploadedAtUtc)
                 .Select(p => new PhotoListItemDto
@@ -111,5 +120,38 @@ namespace PhotoGallery.Infrastructure.Queries
                 })
                 .ToListAsync();
         }
+
+        public async Task<List<PhotoListItemDto>> QuickSearchAsync(string term)
+        {
+            term = term.ToLowerInvariant();
+
+            return await _context.Photos
+                .Include(p => p.User)
+                .Include(p => p.Hashtags)
+                    .ThenInclude(h => h.Hashtag)
+                .Include(p => p.Filters)
+                .Where(p =>
+                    p.User.Email!.ToLower().Contains(term)
+                    || p.Description!.ToLower().Contains(term)
+                    || p.Hashtags.Any(h => h.Hashtag.Value.Contains(term))
+                    || p.Filters.Any(f =>
+                        f.FilterType.ToLower().Contains(term)
+                        || f.FilterValue.ToLower().Contains(term))
+                )
+                .OrderByDescending(p => p.UploadedAtUtc)
+                .Select(p => new PhotoListItemDto
+                {
+                    Id = p.Id,
+                    ThumbnailUrl = string.IsNullOrEmpty(p.ThumbnailStorageKey)
+                        ? "/images/no-thumbnail.png"
+                        : $"/Files/Thumbnail/{p.Id}",
+                    Description = p.Description,
+                    AuthorEmail = p.User.Email!,
+                    UploadedAt = p.UploadedAtUtc,
+                    Hashtags = p.Hashtags.Select(h => h.Hashtag.Value).ToList()
+                })
+                .ToListAsync();
+        }
+
     }
 }

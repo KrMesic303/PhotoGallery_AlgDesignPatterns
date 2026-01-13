@@ -30,6 +30,20 @@
         </select>
     </div>
 
+    <div class="form-check mb-3">
+        <input asp-for="ApplySepia" class="form-check-input" />
+        <label asp-for="ApplySepia" class="form-check-label">
+            Apply Sepia
+        </label>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="BlurAmount" class="form-label"></label>
+        <input asp-for="BlurAmount"
+               class="form-control"
+               step="0.5" />
+    </div>
+
     <button type="submit" class="btn btn-primary">Download</button>
     <a asp-controller="Gallery"
        asp-action="Details"

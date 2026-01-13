@@ -12,7 +12,7 @@ else
         @foreach (var photo in Model)
         {
             <div class="col-md-3 mb-4">
-                <a asp-action="Details" asp-route-id="@photo.Id">
+                <a asp-controller="Gallery" asp-action="Details" asp-route-id="@photo.Id">
                     <img src="@photo.ThumbnailUrl" class="img-fluid rounded" />
                 </a>
                 <p>@photo.Description</p>

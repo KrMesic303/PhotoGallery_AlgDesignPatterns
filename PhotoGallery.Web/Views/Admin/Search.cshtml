@@ -2,40 +2,63 @@
 
 <h3>Search Photos</h3>
 
-<form asp-action="Search" method="post">
-    <div class="row">
-        <div class="col-md-4">
-            <label>Hashtag</label>
-            <input asp-for="Hashtag" class="form-control" />
-        </div>
+<form asp-action="Search" method="post" class="row g-3">
 
-        <div class="col-md-4">
-            <label>Author Email</label>
-            <input asp-for="AuthorEmail" class="form-control" />
-        </div>
+    <!-- Existing fields -->
+    <div class="col-md-6">
+        <label class="form-label">Hashtag</label>
+        <input asp-for="Hashtag" class="form-control" />
     </div>
 
-    <div class="row mt-2">
-        <div class="col-md-3">
-            <label>Uploaded From</label>
-            <input asp-for="UploadedFrom" type="date" class="form-control" />
-        </div>
-
-        <div class="col-md-3">
-            <label>Uploaded To</label>
-            <input asp-for="UploadedTo" type="date" class="form-control" />
-        </div>
-
-        <div class="col-md-3">
-            <label>Min Size (KB)</label>
-            <input asp-for="MinSizeBytes" type="number" class="form-control" />
-        </div>
-
-        <div class="col-md-3">
-            <label>Max Size (KB)</label>
-            <input asp-for="MaxSizeBytes" type="number" class="form-control" />
-        </div>
+    <div class="col-md-6">
+        <label class="form-label">Author Email</label>
+        <input asp-for="AuthorEmail" class="form-control" />
     </div>
 
-    <button type="submit" class="btn btn-primary mt-3">Search</button>
+    <div class="col-md-3">
+        <label class="form-label">Uploaded From</label>
+        <input asp-for="UploadedFrom" type="date" class="form-control" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Uploaded To</label>
+        <input asp-for="UploadedTo" type="date" class="form-control" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Min Size (KB)</label>
+        <input asp-for="MinSizeBytes" class="form-control" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Max Size (KB)</label>
+        <input asp-for="MaxSizeBytes" class="form-control" />
+    </div>
+
+    <hr class="my-3" />
+
+    <!-- 🔹 FILTER SEARCH -->
+    <div class="col-md-4">
+        <label class="form-label">Filter Type</label>
+        <select asp-for="FilterType" class="form-select">
+            <option value="">-- Any --</option>
+            <option value="Resize">Resize</option>
+            <option value="Format">Format</option>
+            <option value="Sepia">Sepia</option>
+            <option value="Blur">Blur</option>
+        </select>
+    </div>
+
+    <div class="col-md-4">
+        <label class="form-label">Filter Value</label>
+        <input asp-for="FilterValue"
+               class="form-control"
+               placeholder="e.g. 600x600, jpg, true, 5" />
+    </div>
+
+    <div class="col-md-12">
+        <button type="submit" class="btn btn-primary mt-2">
+            Search
+        </button>
+    </div>
 </form>

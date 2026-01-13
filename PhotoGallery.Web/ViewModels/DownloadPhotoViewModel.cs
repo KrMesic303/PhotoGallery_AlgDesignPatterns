@@ -13,5 +13,8 @@ namespace PhotoGallery.Web.ViewModels
 
         [Display(Name = "Format")]
         public string Format { get; set; } = "jpg";
+
+        public bool ApplySepia { get; set; }
+        public float? BlurAmount { get; set; }
     }
 }

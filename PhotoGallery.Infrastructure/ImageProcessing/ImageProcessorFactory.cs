@@ -22,6 +22,16 @@ namespace PhotoGallery.Infrastructure.ImageProcessing
                 processors.Add(new FormatImageProcessor(options.OutputFormat.Trim().ToLowerInvariant()));
             }
 
+            if (options.ApplySepia)
+            {
+                processors.Add(new SepiaImageProcessor());
+            }
+
+            if (options.BlurAmount.HasValue)
+            {
+                processors.Add(new BlurImageProcessor(options.BlurAmount.Value));
+            }
+
             return processors;
         }
     }

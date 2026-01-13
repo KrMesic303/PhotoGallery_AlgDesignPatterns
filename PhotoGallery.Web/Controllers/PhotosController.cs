@@ -58,7 +58,14 @@ namespace PhotoGallery.Web.Controllers
         // POST: /Photos/Upload
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upload(IFormFile file, string description, string hashtags, int? resize, string format)
+        public async Task<IActionResult> Upload(
+            IFormFile file,
+            string description, 
+            string hashtags, 
+            int? resize, 
+            string format, 
+            bool applySepia, 
+            float? blurAmount)
         {
             if (file == null || file.Length == 0)
             {
@@ -86,7 +93,9 @@ namespace PhotoGallery.Web.Controllers
             {
                 ResizeHeight = resize,
                 ResizeWidth = resize,
-                OutputFormat = format
+                OutputFormat = format,
+                ApplySepia = applySepia,
+                BlurAmount = blurAmount
             };
 
             var pipeline = new ImageProcessingPipeline();
@@ -127,6 +136,42 @@ namespace PhotoGallery.Web.Controllers
                 Description = description ?? "",
                 UserId = user.Id
             };
+
+            if (options.ResizeWidth.HasValue)
+            {
+                photo.Filters.Add(new PhotoFilter
+                {
+                    FilterType = "Resize",
+                    FilterValue = $"{options.ResizeWidth}x{options.ResizeHeight}"
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(options.OutputFormat))
+            {
+                photo.Filters.Add(new PhotoFilter
+                {
+                    FilterType = "Format",
+                    FilterValue = options.OutputFormat
+                });
+            }
+
+            if (options.ApplySepia)
+            {
+                photo.Filters.Add(new PhotoFilter
+                {
+                    FilterType = "Sepia",
+                    FilterValue = "true"
+                });
+            }
+
+            if (options.BlurAmount.HasValue)
+            {
+                photo.Filters.Add(new PhotoFilter
+                {
+                    FilterType = "Blur",
+                    FilterValue = options.BlurAmount.Value.ToString()
+                });
+            }
 
             // Handling hastags on photos
             foreach (var tag in (hashtags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -257,7 +302,9 @@ namespace PhotoGallery.Web.Controllers
             {
                 ResizeHeight = model.Resize,
                 ResizeWidth = model.Resize,
-                OutputFormat = model.Format
+                OutputFormat = model.Format,
+                ApplySepia = model.ApplySepia,
+                BlurAmount = model.BlurAmount
             };
 
             var pipeline = new ImageProcessingPipeline();

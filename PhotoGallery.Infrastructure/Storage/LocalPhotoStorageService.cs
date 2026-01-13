@@ -3,6 +3,9 @@ using PhotoGallery.Application.Abstractions;
 
 namespace PhotoGallery.Infrastructure.Storage
 {
+    /// <summary>
+    /// SOLID: SRP
+    /// </summary>
     public sealed class LocalPhotoStorageService : IPhotoStorageService
     {
         private readonly string _rootPath;

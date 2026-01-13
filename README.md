@@ -94,3 +94,11 @@ Design Patterns Table:
 | Data/Service  | Abstract Factory, Specification       |
 | Presentation  | Template Method (pipeline), Decorator |
 | Cross-cutting | Factory (DI), Strategy                |
+
+SOLID principles:
+S - LocalPhotoStorageService, AuditLogger...
+O - IStorageService, IAuditLogger...
+L - PhotosController - we can swap IStorageService
+I - IPhotoQueryService - Gallery controller depends only on querying not uploading/deleting (its using only queries here to fetch data)
+D - Used in DI containers from project (Program.cs - builder, ServiceProvider in behind...), 
+    - Controllers depend on abstractions rather than on concrete implementations of services

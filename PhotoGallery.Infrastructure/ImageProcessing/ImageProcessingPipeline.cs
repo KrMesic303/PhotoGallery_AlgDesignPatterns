@@ -3,19 +3,22 @@ using SixLabors.ImageSharp;
 
 namespace PhotoGallery.Infrastructure.ImageProcessing
 {
-    // Decorator pattern -> but used in Factory
+    /// <summary>
+    /// PATTERN: Template method, Decorator (conceptually with processors, very simmilar definition of them)
+    /// </summary>
     public class ImageProcessingPipeline
     {
         private readonly IList<IImageProcessor> _processors = new List<IImageProcessor>();
 
-        public void AddProcessor(IImageProcessor processor)
-        {
-            _processors.Add(processor);
-        }
         public void AddProcessors(IEnumerable<IImageProcessor> processors)
         {
             foreach (var p in processors)
                 AddProcessor(p);
+        }
+
+        public void AddProcessor(IImageProcessor processor)
+        {
+            _processors.Add(processor);
         }
 
         public Image Execute(Image image)

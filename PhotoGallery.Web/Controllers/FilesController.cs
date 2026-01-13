@@ -4,6 +4,10 @@ using PhotoGallery.Infrastructure.DbContext;
 
 namespace PhotoGallery.Web.Controllers
 {
+    /// <summary>
+    /// PATTERN: Command pattern
+    /// SOLID: SRP, DI
+    /// </summary>
     public class FilesController : Controller
     {
         private readonly ApplicationDbContext _context;

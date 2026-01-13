@@ -12,6 +12,10 @@ using PhotoGallery.Web.ViewModels;
 
 namespace PhotoGallery.Web.Controllers
 {
+    /// <summary>
+    /// PATTERN: Command pattern
+    /// SOLID: SRP, DI
+    /// </summary>
     [Authorize(Roles = "Administrator")]
     public class AdminController : Controller
     {
@@ -21,8 +25,6 @@ namespace PhotoGallery.Web.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IPhotoQueryService _photos;
         private readonly IPhotoStorageService _storage;
-
-
         public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IAuditLogger auditLogger, IPhotoQueryService photos, IPhotoStorageService storage)
         {
             _context = context;

@@ -17,6 +17,9 @@ using System.Security.Claims;
 
 namespace PhotoGallery.Web.Controllers
 {
+    /// <summary>
+    /// SOLID: DIP, LSP - We can change IStorageService, DIP - Controller doesn't depent on low-level modules, its implementing abstractions
+    /// </summary>
     [Authorize]
     public class PhotosController : Controller
     {

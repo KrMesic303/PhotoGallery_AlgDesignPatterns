@@ -60,7 +60,7 @@ namespace PhotoGallery.Web
             builder.Services.AddScoped<IPhotoQueryService, PhotoQueryService>();
 
             // Storage abstraction (can add S3 storage, or example like Google cloud storage)
-            // Factory pattern (DI registrations) - Storage and image processing configuraiton
+            // PATTERN: Factory pattern (DI registrations) - Storage and image processing configuraiton
             var provider = builder.Configuration["Storage:Provider"] ?? "Local";
 
             if (provider.Equals("Gcs", StringComparison.OrdinalIgnoreCase))

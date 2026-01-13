@@ -6,7 +6,7 @@ using PhotoGallery.Infrastructure.DbContext;
 namespace PhotoGallery.Infrastructure.Queries
 {
     /// <summary>
-    /// Specification pattern
+    /// PATTERN: Specification pattern
     /// </summary>
     public class PhotoQueryService : IPhotoQueryService
     {

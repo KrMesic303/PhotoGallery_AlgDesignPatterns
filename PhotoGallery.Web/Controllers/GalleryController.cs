@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.DTOs;
 
 namespace PhotoGallery.Web.Controllers
 {
+    /// <summary>
+    /// PATTERN: Command pattern
+    /// SOLID: SRP
+    /// </summary>
     public class GalleryController : Controller
     {
         private readonly IPhotoQueryService _photos;

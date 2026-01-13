@@ -3,6 +3,9 @@ using PhotoGallery.Application.DTOs.PhotoGallery.Application.DTOs;
 
 namespace PhotoGallery.Infrastructure.ImageProcessing
 {
+    /// <summary>
+    /// PATTERN: Factory pattern
+    /// </summary>
     public class ImageProcessorFactory : IImageProcessorFactory
     {
         public IReadOnlyList<IImageProcessor> Create(ImageProcessingOptionsDto options)

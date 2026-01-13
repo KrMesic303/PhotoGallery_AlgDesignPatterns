@@ -7,6 +7,7 @@
         public string Description { get; set; } = string.Empty;
         public string AuthorEmail { get; set; } = string.Empty;
         public DateTime UploadedAt { get; set; }
+        public string AuthorId { get; set; } = "";
         public List<string> Hashtags { get; set; } = new();
     }
 }

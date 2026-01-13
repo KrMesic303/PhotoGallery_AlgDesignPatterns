@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
+using PhotoGallery.Infrastructure.ImageProcessing;
 using PhotoGallery.Infrastructure.Logging;
 using PhotoGallery.Infrastructure.Queries;
 using PhotoGallery.Infrastructure.Services;
@@ -38,6 +39,8 @@ namespace PhotoGallery.Web
             .AddDefaultUI();
 
             // Strategy pattern - switching between different behaviours (storage, policies, logging)
+            builder.Services.AddScoped<IImageProcessorFactory, ImageProcessorFactory>();
+
             builder.Services.AddScoped<IAuditLogger, AuditLogger>();
             builder.Services.AddScoped<IUploadQuotaService, UploadQuotaService>();
             builder.Services.AddScoped<IPhotoUploadPolicy, PhotoUploadPolicy>();

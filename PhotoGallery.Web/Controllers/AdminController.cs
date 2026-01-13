@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client.Extensions.Msal;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.DTOs;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
+using PhotoGallery.Infrastructure.Logging;
 using PhotoGallery.Web.ViewModels;
 
 namespace PhotoGallery.Web.Controllers
@@ -13,15 +15,21 @@ namespace PhotoGallery.Web.Controllers
     [Authorize(Roles = "Administrator")]
     public class AdminController : Controller
     {
+        private readonly IAuditLogger _auditLogger;
+
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IPhotoQueryService _photos;
+        private readonly IPhotoStorageService _storage;
 
-        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IPhotoQueryService photos)
+
+        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IAuditLogger auditLogger, IPhotoQueryService photos, IPhotoStorageService storage)
         {
             _context = context;
             _userManager = userManager;
+            _auditLogger = auditLogger;
             _photos = photos;
+            _storage = storage;
         }
 
         public async Task<IActionResult> Users()
@@ -67,6 +75,40 @@ namespace PhotoGallery.Web.Controllers
 
             return RedirectToAction(nameof(Photos));
         }
+
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BulkDeletePhotos(int[] photoIds)
+        {
+            if (photoIds == null || photoIds.Length == 0)
+                return RedirectToAction(nameof(Photos));
+
+            var photos = await _context.Photos
+                .Where(p => photoIds.Contains(p.Id))
+                .ToListAsync();
+
+            foreach (var photo in photos)
+            {
+                await _storage.DeleteAsync(photo.StorageKey);
+
+                if (!string.IsNullOrEmpty(photo.ThumbnailStorageKey))
+                    await _storage.DeleteAsync(photo.ThumbnailStorageKey);
+
+                _context.Photos.Remove(photo);
+            }
+
+            await _context.SaveChangesAsync();
+
+            await _auditLogger.LogAsync(
+                userId: User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value,
+                action: "BULK_DELETE_PHOTO",
+                entityType: nameof(Photo),
+                entityId: string.Join(",", photoIds));
+
+            return RedirectToAction(nameof(Photos));
+        }
+
         public async Task<IActionResult> Logs()
         {
             var logs = await _context.AuditLogs

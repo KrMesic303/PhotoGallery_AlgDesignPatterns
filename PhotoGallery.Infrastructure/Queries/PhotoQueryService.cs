@@ -49,6 +49,7 @@ namespace PhotoGallery.Infrastructure.Queries
                     Description = p.Description,
                     AuthorEmail = p.User.Email!,
                     UploadedAt = p.UploadedAtUtc,
+                    AuthorId = p.UserId,
                     Hashtags = p.Hashtags.Select(h => h.Hashtag.Value).ToList()
                 })
                 .FirstOrDefaultAsync();

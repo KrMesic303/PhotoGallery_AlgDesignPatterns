@@ -2,38 +2,88 @@
 
 <h3>All Photos</h3>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Thumbnail</th>
-            <th>User</th>
-            <th>Description</th>
-            <th>Uploaded</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var photo in Model)
-        {
+<form asp-controller="Admin"
+      asp-action="BulkDeletePhotos"
+      method="post"
+      onsubmit="return confirm('Delete selected photos?');">
+
+    @Html.AntiForgeryToken()
+
+    <table class="table table-bordered align-middle">
+        <thead>
             <tr>
-                <td>
-                    <img src="/uploads/@photo.ThumbnailStorageKey"
-                         width="80"
-                         class="rounded" />
-                </td>
-                <td>@photo.User.Email</td>
-                <td>@photo.Description</td>
-                <td>@photo.UploadedAtUtc</td>
-                <td>
-                    <form asp-action="DeletePhoto" method="post">
-                        <input type="hidden" name="id" value="@photo.Id" />
-                        <button class="btn btn-sm btn-danger"
+                <th>
+                    <input type="checkbox" id="selectAll" />
+                </th>
+                <th>Thumbnail</th>
+                <th>User</th>
+                <th>Description</th>
+                <th>Uploaded</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var photo in Model)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox"
+                               name="photoIds"
+                               value="@photo.Id" />
+                    </td>
+                    <td>
+                        <img src="/uploads/@photo.ThumbnailStorageKey"
+                             width="80"
+                             class="rounded" />
+                    </td>
+                    <td>@photo.User.Email</td>
+                    <td>@photo.Description</td>
+                    <td>@photo.UploadedAtUtc</td>
+                    <td>
+                    <td class="text-nowrap">
+                        <!-- EDIT (GET) -->
+                        <a class="btn btn-sm btn-outline-primary me-2"
+                           asp-controller="Gallery"
+                           asp-action="Details"
+                           asp-route-id="@photo.Id">
+                            View
+                        </a>
+
+                        <a class="btn btn-sm btn-outline-secondary me-2"
+                           asp-controller="Photos"
+                           asp-action="Edit"
+                           asp-route-id="@photo.Id">
+                            Edit
+                        </a>
+
+                        <!-- DELETE (POST) -->
+                        <button type="submit"
+                                formaction="@Url.Action("DeletePhoto", "Admin")"
+                                formmethod="post"
+                                name="id"
+                                value="@photo.Id"
+                                class="btn btn-sm btn-danger"
                                 onclick="return confirm('Delete this photo?');">
                             Delete
                         </button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit"
+            class="btn btn-danger mt-2">
+        Delete selected
+    </button>
+</form>
+
+@section Scripts {
+    <script>
+        document.getElementById('selectAll')?.addEventListener('change', function () {
+            document.querySelectorAll('input[name="photoIds"]').forEach(cb => {
+                cb.checked = this.checked;
+            });
+        });
+    </script>
+}

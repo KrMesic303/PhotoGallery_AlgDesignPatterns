@@ -12,6 +12,11 @@ namespace PhotoGallery.Infrastructure.ImageProcessing
         {
             _processors.Add(processor);
         }
+        public void AddProcessors(IEnumerable<IImageProcessor> processors)
+        {
+            foreach (var p in processors)
+                AddProcessor(p);
+        }
 
         public Image Execute(Image image)
         {

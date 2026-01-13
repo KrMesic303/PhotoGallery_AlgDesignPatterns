@@ -11,14 +11,17 @@ else
         {
             <div class="photo-card mb-4">
 
-                <img src="@photo.ThumbnailUrl" class="photo-image" />
-
+                <a asp-controller="Gallery"
+                   asp-action="Details"
+                   asp-route-id="@photo.Id">
+                    <img src="@photo.ThumbnailUrl" class="photo-image" />
+                </a>
                 <h6 class="mt-2">@photo.Description</h6>
 
                 <div class="text-muted">
                     @foreach (var tag in photo.Hashtags)
                     {
-                        <span class="me-2">#@tag</span>
+                        <span class="badge bg-secondary me-1 mb-1">#@tag</span>
                     }
                 </div>
 

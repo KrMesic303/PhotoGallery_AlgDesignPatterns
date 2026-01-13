@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application.Abstractions;
+using PhotoGallery.Application.DTOs.PhotoGallery.Application.DTOs;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
 using PhotoGallery.Infrastructure.ImageProcessing;
@@ -26,8 +27,10 @@ namespace PhotoGallery.Web.Controllers
         private readonly IUploadQuotaService _quotaService;
         private readonly IPhotoUploadPolicy _uploadPolicy;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IImageProcessorFactory _processorFactory;
 
-        public PhotosController(ApplicationDbContext context, IPhotoStorageService storage, IPhotoUploadPolicy uploadPolicy, UserManager<ApplicationUser> userManager, IAuditLogger auditLogger, IUploadQuotaService quotaService)
+
+        public PhotosController(ApplicationDbContext context, IPhotoStorageService storage, IPhotoUploadPolicy uploadPolicy, UserManager<ApplicationUser> userManager, IAuditLogger auditLogger, IUploadQuotaService quotaService, IImageProcessorFactory processorFactory )
         {
             _context = context;
             _storage = storage;
@@ -35,6 +38,7 @@ namespace PhotoGallery.Web.Controllers
             _userManager = userManager;
             _auditLogger = auditLogger;
             _quotaService = quotaService;
+            _processorFactory = processorFactory;
         }
 
         // Command pattern ( SRP - controller invokes commands and services/classes receive commands)
@@ -77,26 +81,29 @@ namespace PhotoGallery.Web.Controllers
 
             // Load originalImage
             using var originalImage = await Image.LoadAsync(file.OpenReadStream());
+
+            var options = new ImageProcessingOptionsDto
+            {
+                ResizeHeight = resize,
+                ResizeWidth = resize,
+                OutputFormat = format
+            };
+
             var pipeline = new ImageProcessingPipeline();
-
-            // Resize processor
-            if (resize.HasValue)
-                pipeline.AddProcessor(new ResizeImageProcessor(resize.Value, resize.Value));
-
-            // Format processor
-            var formatProcessor = new FormatImageProcessor(format ?? "jpg");
-            pipeline.AddProcessor(formatProcessor);
+            pipeline.AddProcessors(_processorFactory.Create(options));
 
             var processedImage = pipeline.Execute(originalImage);
 
-
             using var imageStream = new MemoryStream();
-            SaveImage(processedImage, imageStream, formatProcessor);
+            SaveImage(processedImage, imageStream, options.OutputFormat);
             imageStream.Position = 0;
 
-            var storageKey = await _storage.SaveAsync(imageStream, Path.GetFileNameWithoutExtension(file.FileName) + formatProcessor.GetExtension(), file.ContentType);
+            var extension = GetExtension(options.OutputFormat);
+            var contentType = GetContentType(options.OutputFormat);
 
-            // Thumnails creation
+            var storageKey = await _storage.SaveAsync(imageStream, Path.GetFileNameWithoutExtension(file.FileName) + extension, contentType);
+
+            // Thumnail
             using var thumbImage = processedImage.Clone(ctx =>
                 ctx.Resize(new ResizeOptions
                 {
@@ -110,7 +117,6 @@ namespace PhotoGallery.Web.Controllers
 
             var thumbnailKey = await _storage.SaveAsync(thumbStream, "thumb_" + file.FileName, "image/jpeg");
 
-            // Photo entity
             var photo = new Photo
             {
                 StorageKey = storageKey,
@@ -126,7 +132,6 @@ namespace PhotoGallery.Web.Controllers
             foreach (var tag in (hashtags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 var normalized = tag.ToLowerInvariant();
-
                 var hashtagEntity = await _context.Hashtags
                     .FirstOrDefaultAsync(h => h.Value == normalized)
                     ?? new Hashtag { Value = normalized };
@@ -134,7 +139,7 @@ namespace PhotoGallery.Web.Controllers
                 photo.Hashtags.Add(new PhotoHashtag { Hashtag = hashtagEntity });
             }
 
-            // Save to database
+            // DB save
             _context.Photos.Add(photo);
             await _context.SaveChangesAsync();
 
@@ -160,7 +165,7 @@ namespace PhotoGallery.Web.Controllers
                 return NotFound();
 
             // Authorized user
-            if (photo.UserId != user.Id)
+            if (photo.UserId != user.Id && !User.IsInRole("Administrator"))
                 return Forbid();
 
             var model = new EditPhotoViewModel
@@ -193,7 +198,7 @@ namespace PhotoGallery.Web.Controllers
                 return NotFound();
 
             // Authorized user
-            if (photo.UserId != user.Id)
+            if (photo.UserId != user.Id && !User.IsInRole("Administrator"))
                 return Forbid();
 
             photo.Description = model.Description;
@@ -225,12 +230,10 @@ namespace PhotoGallery.Web.Controllers
             if (photo == null)
                 return NotFound();
 
-            var model = new DownloadPhotoViewModel
+            return View(new DownloadPhotoViewModel
             {
                 PhotoId = id
-            };
-
-            return View(model);
+            });
         }
 
         [AllowAnonymous]
@@ -244,32 +247,33 @@ namespace PhotoGallery.Web.Controllers
             if (model.DownloadOriginal)
             {
                 var originalStream = await _storage.GetAsync(photo.StorageKey);
-                return File(
-                    originalStream,
-                    photo.ContentType,
-                    photo.OriginalFileName);
+                return File(originalStream, photo.ContentType, photo.OriginalFileName);
             }
 
             using var sourceStream = await _storage.GetAsync(photo.StorageKey);
             using var image = await Image.LoadAsync(sourceStream);
 
-            var pipeline = new ImageProcessingPipeline();
-
-            if (model.Resize.HasValue)
+            var options = new ImageProcessingOptionsDto
             {
-                pipeline.AddProcessor(new ResizeImageProcessor(model.Resize.Value, model.Resize.Value));
-            }
+                ResizeHeight = model.Resize,
+                ResizeWidth = model.Resize,
+                OutputFormat = model.Format
+            };
 
-            var formatProcessor = new FormatImageProcessor(model.Format);
-            pipeline.AddProcessor(formatProcessor);
+            var pipeline = new ImageProcessingPipeline();
+            // Abstract Factory Pattern
+            pipeline.AddProcessors(_processorFactory.Create(options));
 
             var processedImage = pipeline.Execute(image);
 
             var output = new MemoryStream();
-            SaveImage(processedImage, output, formatProcessor);
+            SaveImage(processedImage, output, options.OutputFormat);
             output.Position = 0;
 
-            var fileName = Path.GetFileNameWithoutExtension(photo.OriginalFileName) + formatProcessor.GetExtension();
+            // Download
+            var extension = GetExtension(options.OutputFormat);
+            var fileName = Path.GetFileNameWithoutExtension(photo.OriginalFileName) + extension;
+            var contentType = GetContentType(options.OutputFormat);
 
             await _auditLogger.LogAsync(
                 userId: User.Identity?.IsAuthenticated == true
@@ -279,21 +283,47 @@ namespace PhotoGallery.Web.Controllers
                 entityType: nameof(Photo),
                 entityId: photo.Id.ToString());
 
+            return File(output, contentType, fileName);
+        }
 
-            return File(output, "application/octet-stream", fileName);
+        [Authorize(Roles = "Administrator")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var photo = await _context.Photos.FindAsync(id);
+            if (photo == null)
+                return NotFound();
+
+            // Remove files from storage
+            await _storage.DeleteAsync(photo.StorageKey);
+
+            if (!string.IsNullOrEmpty(photo.ThumbnailStorageKey))
+                await _storage.DeleteAsync(photo.ThumbnailStorageKey);
+
+            _context.Photos.Remove(photo);
+            await _context.SaveChangesAsync();
+
+            await _auditLogger.LogAsync(
+                userId: User.FindFirst(ClaimTypes.NameIdentifier)!.ToString(),
+                action: "DELETE_PHOTO",
+                entityType: nameof(Photo),
+                entityId: photo.Id.ToString());
+
+            return RedirectToAction("Index", "Gallery");
         }
 
 
         #region Helper methods
 
-        private static void SaveImage(Image image, Stream output, FormatImageProcessor format)
+        private static void SaveImage(Image image, Stream output, string? format)
         {
-            switch (format.GetExtension())
+            switch ((format ?? "jpg").ToLowerInvariant())
             {
-                case ".png":
+                case "png":
                     image.Save(output, new PngEncoder());
                     break;
-                case ".bmp":
+                case "bmp":
                     image.Save(output, new BmpEncoder());
                     break;
                 default:
@@ -301,6 +331,16 @@ namespace PhotoGallery.Web.Controllers
                     break;
             }
         }
+
+        private static string GetContentType(string? format) =>
+            (format ?? "jpg").ToLowerInvariant() switch
+            {
+                "png" => "image/png",
+                "bmp" => "image/bmp",
+                _ => "image/jpeg"
+            };
+
+        private static string GetExtension(string? format) => "." + (format ?? "jpg").ToLowerInvariant();
 
         #endregion
     }

@@ -1,4 +1,59 @@
 # PhotoGallery Application
+# 0.0.9
+**Added**
+- Pagination support on Gallery main page (10 photos per page)
+- Paged result abstraction (PagedResult<T>)
+- Page navigation UI with responsive behavior (side navigation on large screens, bottom on small screens)
+- Google Cloud Storage implementation for photo and thumbnail storage
+- Support for external authentication providers:
+	- Google Login
+	- GitHub Login
+
+**Changed**
+	- Gallery index query refactored to support paging
+	- Storage implementation switched via DI (Local - Cloud)
+	- Navigation layout updated to support pagination UX
+
+# 0.0.8
+**Added**
+	- Photo filters persistence (PhotoFilter entity)
+	- Support for multiple image filters:
+		- Resize
+		- Format
+		- Sepia
+		- Blur
+	- Filter metadata saved per photo
+	- Advanced search extended to filter by applied image filters
+	- Quick search across:
+		- Author email
+		- Description
+		- Hashtags
+		- Applied filters (type and value)
+
+**Changed**
+	- Upload pipeline extended to support multiple processors
+	- Image processing implemented using Abstract Factory pattern
+	- Search logic updated to include filter-based criteria
+	- Query services refactored for extensibility and performance
+
+# 0.0.7
+**Added**
+	- Full Admin area with role-based authorization
+	- Admin tabs:
+	- Users management
+	- Photos management
+	- Audit logs
+	- Statistics
+	- Advanced search
+	- Bulk delete functionality for photos
+	- Admin-only photo deletion
+	- Admin photo edit access
+	- Admin statistics dashboard
+
+**Changed**
+	- Search page restricted to administrators
+	- UI actions (Edit/Delete) conditionally rendered based on role and ownership
+	- Gallery search logic reused for Admin advanced search
 
 # 0.0.6
 **Added**

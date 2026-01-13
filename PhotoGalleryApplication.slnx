@@ -15,9 +15,4 @@
     <File Path="../UCA-AADBDT-Project.pdf" />
     <File Path="CHANGELOG.md" />
   </Folder>
-  <Folder Name="/Tests/" />
-  <Folder Name="/Tests/PhotoGallery.IntegrationTests/" />
-  <Folder Name="/Tests/PhotoGallery.UnitTests/">
-    <Project Path="PhotoGallery.UnitTests/PhotoGallery.UnitTests.csproj" />
-  </Folder>
 </Solution>

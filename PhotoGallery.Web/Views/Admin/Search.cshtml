@@ -42,18 +42,9 @@
         <label class="form-label">Filter Type</label>
         <select asp-for="FilterType" class="form-select">
             <option value="">-- Any --</option>
-            <option value="Resize">Resize</option>
-            <option value="Format">Format</option>
             <option value="Sepia">Sepia</option>
             <option value="Blur">Blur</option>
         </select>
-    </div>
-
-    <div class="col-md-4">
-        <label class="form-label">Filter Value</label>
-        <input asp-for="FilterValue"
-               class="form-control"
-               placeholder="e.g. 600x600, jpg, true, 5" />
     </div>
 
     <div class="col-md-12">

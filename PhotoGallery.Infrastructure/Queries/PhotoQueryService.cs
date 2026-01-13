@@ -17,6 +17,40 @@ namespace PhotoGallery.Infrastructure.Queries
         {
             _context = context;
         }
+        public async Task<PagedResult<PhotoListItemDto>> GetLatestPagedAsync(int page, int pageSize)
+        {
+            if (page < 1) page = 1;
+
+            var baseQuery = _context.Photos
+                .AsNoTracking();
+
+            var totalCount = await baseQuery.CountAsync();
+
+            var items = await baseQuery
+                .OrderByDescending(p => p.UploadedAtUtc)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new PhotoListItemDto
+                {
+                    Id = p.Id,
+                    ThumbnailUrl = string.IsNullOrEmpty(p.ThumbnailStorageKey)
+                        ? "/images/no-thumbnail.png"
+                        : $"/Files/Thumbnail/{p.Id}",
+                    Description = p.Description,
+                    AuthorEmail = p.User.Email!,
+                    UploadedAt = p.UploadedAtUtc,
+                    Hashtags = p.Hashtags.Select(h => h.Hashtag.Value).ToList()
+                })
+                .ToListAsync();
+
+            return new PagedResult<PhotoListItemDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
 
         public async Task<List<PhotoListItemDto>> GetLatestAsync(int count)
         {
@@ -97,12 +131,12 @@ namespace PhotoGallery.Infrastructure.Queries
                 query = query.Where(p => p.SizeInBytes <= criteria.MaxSizeBytes.Value);
             }
 
-            if (!string.IsNullOrWhiteSpace(criteria.FilterType) && !string.IsNullOrWhiteSpace(criteria.FilterValue))
+            if (!string.IsNullOrWhiteSpace(criteria.FilterType))
             {
+                var filterType = criteria.FilterType.ToLower();
+
                 query = query.Where(p =>
-                    p.Filters.Any(f =>
-                        f.FilterType.Equals(criteria.FilterType, StringComparison.OrdinalIgnoreCase)
-                        && f.FilterValue.Contains(criteria.FilterValue)));
+                    p.Filters.Any(f => f.FilterType.ToLower() == filterType));
             }
 
             return await query

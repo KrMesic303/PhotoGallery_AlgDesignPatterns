@@ -2,13 +2,13 @@
 
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-12 col-md-10 col-lg-8">
+        <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-body">
 
                     <img src="@Model.ImageUrl"
                          alt="Photo"
-                         class="img-fluid d-block mx-auto mb-3 photo-img" />
+                         class="photo-img-full mb-4" />
 
                     <p class="mb-3">@Model.Description</p>
 
@@ -70,9 +70,20 @@
 </div>
 
 <style>
-    .photo-img {
-        width: 564px;
-        height: 564px;
+    .photo-img-full {
+        width: 100%;
+        max-height: calc(100vh - 240px);
         object-fit: contain;
+        display: block;
+        margin: 0 auto;
+        background-color: #f8f9fa;
+    }
+
+    .card {
+        border-radius: 0;
+    }
+
+    .card-body {
+        padding: 2rem 3rem;
     }
 </style>

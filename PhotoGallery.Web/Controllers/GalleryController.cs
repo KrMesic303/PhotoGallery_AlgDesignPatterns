@@ -14,10 +14,14 @@ namespace PhotoGallery.Web.Controllers
             _photos = photos;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var items = await _photos.GetLatestAsync(10);
-            return View(items);
+
+            const int pageSize = 10;
+
+            var result = await _photos.GetLatestPagedAsync(page, pageSize);
+
+            return View(result);
         }
 
         public async Task<IActionResult> Details(int id)

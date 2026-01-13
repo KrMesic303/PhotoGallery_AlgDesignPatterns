@@ -1,32 +1,122 @@
-﻿@model dynamic
+﻿@model PhotoGallery.Web.ViewModels.AdminStatisticsViewModel
 
-<h3>System Statistics</h3>
+<h3 class="mb-4">System Statistics</h3>
 
-<div class="row">
-    <div class="col-md-4">
-        <div class="card text-center">
+<!-- SUMMARY CARDS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
             <div class="card-body">
-                <h5>Total Users</h5>
+                <h6 class="text-muted">Users</h6>
                 <h3>@Model.Users</h3>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card text-center">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
             <div class="card-body">
-                <h5>Total Photos</h5>
+                <h6 class="text-muted">Photos</h6>
                 <h3>@Model.Photos</h3>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4">
-        <div class="card text-center">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
             <div class="card-body">
-                <h5>Total Storage Used</h5>
-                <h3>@(Model.StorageUsed / 1024 / 1024) MB</h3>
+                <h6 class="text-muted">Total Uploads</h6>
+                <h3>@Model.TotalUploads</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Total Downloads</h6>
+                <h3>@Model.TotalDownloads</h3>
             </div>
         </div>
     </div>
 </div>
+
+<!-- STORAGE STATS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Storage Used</h6>
+                <h4>@(Model.StorageUsed / 1024 / 1024) MB</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Largest Photo</h6>
+                <h4>@(Model.LargestPhotoSize / 1024 / 1024) MB</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h6 class="text-muted">Average Photo Size</h6>
+                <h4>@(string.Format("{0:F2}", Model.AveragePhotoSize / 1024.0 / 1024.0)) MB</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOP DOWNLOADED PHOTOS -->
+@if (Model.TopDownloadedPhotos.Any())
+{
+    <h4 class="mt-4">Top Downloaded Photos</h4>
+
+    <table class="table table-bordered table-sm align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Description</th>
+                <th class="text-center">Downloads</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var photo in Model.TopDownloadedPhotos)
+            {
+                <tr>
+                    <td>@photo.Description</td>
+                    <td class="text-center">@photo.DownloadCount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<!-- STORAGE PER USER -->
+@if (Model.StoragePerUser.Any())
+{
+    <h4 class="mt-4">Storage Usage Per User</h4>
+
+    <table class="table table-bordered table-sm align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>User</th>
+                <th class="text-end">Storage (MB)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.StoragePerUser)
+            {
+                <tr>
+                    <td>@user.UserEmail</td>
+                    <td class="text-end">
+                        @(user.StorageUsed / 1024 / 1024)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

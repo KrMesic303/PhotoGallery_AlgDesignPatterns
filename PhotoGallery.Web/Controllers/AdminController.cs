@@ -118,17 +118,106 @@ namespace PhotoGallery.Web.Controllers
 
             return View(logs);
         }
+
         public async Task<IActionResult> Statistics()
         {
+            var now = DateTime.UtcNow;
+            var last7Days = now.AddDays(-7);
+
+            // Basic stats
+            var usersCount = await _context.Users.CountAsync();
+            var photosCount = await _context.Photos.CountAsync();
+            var storageUsed = await _context.Photos.SumAsync(p => p.SizeInBytes);
+
+            // Upload stats
+            var totalUploads = await _context.AuditLogs
+                .CountAsync(l => l.Action == "UPLOAD_PHOTO");
+
+            var uploadsLast7Days = await _context.AuditLogs
+                .CountAsync(l => l.Action == "UPLOAD_PHOTO" && l.CreatedAtUtc >= last7Days);
+
+            // Photo size stats
+            var largestPhotoSize = await _context.Photos
+                .MaxAsync(p => (long?)p.SizeInBytes) ?? 0;
+
+            var averagePhotoSize = await _context.Photos.AnyAsync()
+                ? await _context.Photos.AverageAsync(p => p.SizeInBytes)
+                : 0;
+
+            // Download stats
+            var downloadGroups = await _context.AuditLogs
+                .Where(l => l.Action == "DOWNLOAD_PHOTO")
+                .GroupBy(l => l.EntityId)
+                .Select(g => new
+                {
+                    EntityId = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(x => x.Count)
+                .Take(5)
+                .ToListAsync();
+
+            // Parsing IDs
+            var photoIds = downloadGroups
+                .Select(x => int.TryParse(x.EntityId, out var id) ? id : (int?)null)
+                .Where(id => id.HasValue)
+                .Select(id => id.Value)
+                .ToList();
+
+            var photoDescriptions = await _context.Photos
+                .Where(p => photoIds.Contains(p.Id))
+                .Select(p => new { p.Id, p.Description })
+                .ToListAsync();
+
+            var topDownloadedPhotos = downloadGroups
+                .Select(g =>
+                {
+                    var parsed = int.TryParse(g.EntityId, out var id);
+                    var description = parsed
+                        ? photoDescriptions.FirstOrDefault(p => p.Id == id)?.Description ?? ""
+                        : "";
+
+                    return new PhotoDownloadStat
+                    {
+                        PhotoId = parsed ? id : 0,
+                        DownloadCount = g.Count,
+                        Description = description
+                    };
+                })
+                .ToList();
+
+            // Storage per user
+            var storagePerUser = await _context.Photos
+                .GroupBy(p => p.User.Email)
+                .Select(g => new UserStorageStat
+                {
+                    UserEmail = g.Key!,
+                    StorageUsed = g.Sum(p => p.SizeInBytes)
+                })
+                .OrderByDescending(x => x.StorageUsed)
+                .ToListAsync();
+
             var stats = new AdminStatisticsViewModel
             {
-                Users = await _context.Users.CountAsync(),
-                Photos = await _context.Photos.CountAsync(),
-                StorageUsed = await _context.Photos.SumAsync(p => p.SizeInBytes)
+                Users = usersCount,
+                Photos = photosCount,
+                StorageUsed = storageUsed,
+
+                TotalUploads = totalUploads,
+                UploadsLast7Days = uploadsLast7Days,
+
+                LargestPhotoSize = largestPhotoSize,
+                AveragePhotoSize = averagePhotoSize,
+
+                TotalDownloads = downloadGroups.Sum(x => x.Count),
+                TopDownloadedPhotos = topDownloadedPhotos,
+
+                StoragePerUser = storagePerUser
             };
 
             return View(stats);
         }
+
 
         [HttpGet]
         [Authorize(Roles = "Administrator")]

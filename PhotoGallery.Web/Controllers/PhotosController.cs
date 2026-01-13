@@ -352,7 +352,7 @@ namespace PhotoGallery.Web.Controllers
             await _context.SaveChangesAsync();
 
             await _auditLogger.LogAsync(
-                userId: User.FindFirst(ClaimTypes.NameIdentifier)!.ToString(),
+                userId: User.FindFirst(ClaimTypes.NameIdentifier)!.Value,
                 action: "DELETE_PHOTO",
                 entityType: nameof(Photo),
                 entityId: photo.Id.ToString());

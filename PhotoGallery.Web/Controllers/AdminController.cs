@@ -4,11 +4,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client.Extensions.Msal;
 using PhotoGallery.Application.Abstractions;
+using PhotoGallery.Application.Abstractions.Queries;
+using PhotoGallery.Application.Abstractions.Repositories;
 using PhotoGallery.Application.DTOs;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure.DbContext;
 using PhotoGallery.Infrastructure.Logging;
 using PhotoGallery.Web.ViewModels;
+using System.Security.Claims;
 
 namespace PhotoGallery.Web.Controllers
 {
@@ -19,32 +22,49 @@ namespace PhotoGallery.Web.Controllers
     [Authorize(Roles = "Administrator")]
     public class AdminController : Controller
     {
-        private readonly IAuditLogger _auditLogger;
-
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IPhotoQueryService _photos;
+        private readonly IAuditLogger _auditLogger;
         private readonly IPhotoStorageService _storage;
-        public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IAuditLogger auditLogger, IPhotoQueryService photos, IPhotoStorageService storage)
+
+        private readonly IAdminUserQueryService _adminUsers;
+        private readonly IAdminPhotoQueryService _adminPhotos;
+        private readonly IAuditLogQueryService _auditLogs;
+        private readonly IAdminStatisticsQueryService _stats;
+
+        private readonly IPhotoQueryService _photoQuery;
+        private readonly IPhotoRepository _photoRepository;
+
+        public AdminController(
+            UserManager<ApplicationUser> userManager,
+            IAuditLogger auditLogger,
+            IPhotoStorageService storage,
+            IAdminUserQueryService adminUsers,
+            IAdminPhotoQueryService adminPhotos,
+            IAuditLogQueryService auditLogs,
+            IAdminStatisticsQueryService stats,
+            IPhotoQueryService photoQuery,
+            IPhotoRepository photoRepository)
         {
-            _context = context;
             _userManager = userManager;
             _auditLogger = auditLogger;
-            _photos = photos;
             _storage = storage;
+            _adminUsers = adminUsers;
+            _adminPhotos = adminPhotos;
+            _auditLogs = auditLogs;
+            _stats = stats;
+            _photoQuery = photoQuery;
+            _photoRepository = photoRepository;
         }
 
-        public async Task<IActionResult> Users()
+        public async Task<IActionResult> Users(CancellationToken ct)
         {
-            var users = await _context.Users
-                .Include(u => u.PackagePlan)
-                .ToListAsync();
-
+            var users = await _adminUsers.GetUsersWithPlansAsync(ct);
             return View(users);
         }
 
         [HttpPost]
-        public async Task<IActionResult> ChangePackage(string userId, int packageId)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePackage(string userId, int packageId, CancellationToken ct)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return NotFound();
@@ -53,186 +73,132 @@ namespace PhotoGallery.Web.Controllers
             user.PackageEffectiveFrom = DateTime.UtcNow;
 
             await _userManager.UpdateAsync(user);
+
+            await _auditLogger.LogAsync(
+                userId: User.FindFirstValue(ClaimTypes.NameIdentifier)!,
+                action: "ADMIN_CHANGE_PACKAGE",
+                entityType: nameof(ApplicationUser),
+                entityId: userId,
+                cancellationToken: ct);
+
             return RedirectToAction(nameof(Users));
         }
 
-        public async Task<IActionResult> Photos()
+        public async Task<IActionResult> Photos(CancellationToken ct)
         {
-            var photos = await _context.Photos
-                .Include(p => p.User)
-                .OrderByDescending(p => p.UploadedAtUtc)
-                .ToListAsync();
-
+            var photos = await _adminPhotos.GetPhotosWithUsersAsync(ct);
             return View(photos);
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeletePhoto(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePhoto(int id, CancellationToken ct)
         {
-            var photo = await _context.Photos.FindAsync(id);
+            var photo = await _photoRepository.FindAsync(id, ct);
             if (photo == null) return NotFound();
 
-            _context.Photos.Remove(photo);
-            await _context.SaveChangesAsync();
+            // Remove files from storage
+            await _storage.DeleteAsync(photo.StorageKey, ct);
+            if (!string.IsNullOrEmpty(photo.ThumbnailStorageKey))
+                await _storage.DeleteAsync(photo.ThumbnailStorageKey, ct);
+
+            _photoRepository.Remove(photo);
+            await _photoRepository.SaveChangesAsync(ct);
+
+            await _auditLogger.LogAsync(
+                userId: User.FindFirstValue(ClaimTypes.NameIdentifier)!,
+                action: "ADMIN_DELETE_PHOTO",
+                entityType: nameof(Photo),
+                entityId: photo.Id.ToString(),
+                cancellationToken: ct);
 
             return RedirectToAction(nameof(Photos));
         }
 
-        [Authorize(Roles = "Administrator")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BulkDeletePhotos(int[] photoIds)
+        public async Task<IActionResult> BulkDeletePhotos(int[] photoIds, CancellationToken ct)
         {
             if (photoIds == null || photoIds.Length == 0)
                 return RedirectToAction(nameof(Photos));
 
-            var photos = await _context.Photos
-                .Where(p => photoIds.Contains(p.Id))
-                .ToListAsync();
+            // Using admin query service to fetch photos
+            var photos = await _adminPhotos.GetPhotosByIdsAsync(photoIds, ct);
 
             foreach (var photo in photos)
             {
-                await _storage.DeleteAsync(photo.StorageKey);
+                await _storage.DeleteAsync(photo.StorageKey, ct);
 
                 if (!string.IsNullOrEmpty(photo.ThumbnailStorageKey))
-                    await _storage.DeleteAsync(photo.ThumbnailStorageKey);
+                    await _storage.DeleteAsync(photo.ThumbnailStorageKey, ct);
 
-                _context.Photos.Remove(photo);
+                _photoRepository.Remove(photo);
             }
 
-            await _context.SaveChangesAsync();
+            await _photoRepository.SaveChangesAsync(ct);
 
             await _auditLogger.LogAsync(
-                userId: User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value,
+                userId: User.FindFirstValue(ClaimTypes.NameIdentifier)!,
                 action: "BULK_DELETE_PHOTO",
                 entityType: nameof(Photo),
-                entityId: string.Join(",", photoIds));
+                entityId: string.Join(",", photoIds),
+                cancellationToken: ct);
 
             return RedirectToAction(nameof(Photos));
         }
 
-        public async Task<IActionResult> Logs()
+        public async Task<IActionResult> Logs(CancellationToken ct)
         {
-            var logs = await _context.AuditLogs
-                .OrderByDescending(l => l.CreatedAtUtc)
-                .Take(500)
-                .ToListAsync();
-
+            var logs = await _auditLogs.GetLatestAsync(take: 500, cancellationToken: ct);
             return View(logs);
         }
 
-        public async Task<IActionResult> Statistics()
+        public async Task<IActionResult> Statistics(CancellationToken ct)
         {
-            var now = DateTime.UtcNow;
-            var last7Days = now.AddDays(-7);
+            var dto = await _stats.GetStatisticsAsync(ct);
 
-            // Basic stats
-            var usersCount = await _context.Users.CountAsync();
-            var photosCount = await _context.Photos.CountAsync();
-            var storageUsed = await _context.Photos.SumAsync(p => p.SizeInBytes);
-
-            // Upload stats
-            var totalUploads = await _context.AuditLogs
-                .CountAsync(l => l.Action == "UPLOAD_PHOTO");
-
-            var uploadsLast7Days = await _context.AuditLogs
-                .CountAsync(l => l.Action == "UPLOAD_PHOTO" && l.CreatedAtUtc >= last7Days);
-
-            // Photo size stats
-            var largestPhotoSize = await _context.Photos
-                .MaxAsync(p => (long?)p.SizeInBytes) ?? 0;
-
-            var averagePhotoSize = await _context.Photos.AnyAsync()
-                ? await _context.Photos.AverageAsync(p => p.SizeInBytes)
-                : 0;
-
-            // Download stats
-            var downloadGroups = await _context.AuditLogs
-                .Where(l => l.Action == "DOWNLOAD_PHOTO")
-                .GroupBy(l => l.EntityId)
-                .Select(g => new
-                {
-                    EntityId = g.Key,
-                    Count = g.Count()
-                })
-                .OrderByDescending(x => x.Count)
-                .Take(5)
-                .ToListAsync();
-
-            // Parsing IDs
-            var photoIds = downloadGroups
-                .Select(x => int.TryParse(x.EntityId, out var id) ? id : (int?)null)
-                .Where(id => id.HasValue)
-                .Select(id => id.Value)
-                .ToList();
-
-            var photoDescriptions = await _context.Photos
-                .Where(p => photoIds.Contains(p.Id))
-                .Select(p => new { p.Id, p.Description })
-                .ToListAsync();
-
-            var topDownloadedPhotos = downloadGroups
-                .Select(g =>
-                {
-                    var parsed = int.TryParse(g.EntityId, out var id);
-                    var description = parsed
-                        ? photoDescriptions.FirstOrDefault(p => p.Id == id)?.Description ?? ""
-                        : "";
-
-                    return new PhotoDownloadStat
-                    {
-                        PhotoId = parsed ? id : 0,
-                        DownloadCount = g.Count,
-                        Description = description
-                    };
-                })
-                .ToList();
-
-            // Storage per user
-            var storagePerUser = await _context.Photos
-                .GroupBy(p => p.User.Email)
-                .Select(g => new UserStorageStat
-                {
-                    UserEmail = g.Key!,
-                    StorageUsed = g.Sum(p => p.SizeInBytes)
-                })
-                .OrderByDescending(x => x.StorageUsed)
-                .ToListAsync();
-
-            var stats = new AdminStatisticsViewModel
+            var model = new AdminStatisticsViewModel
             {
-                Users = usersCount,
-                Photos = photosCount,
-                StorageUsed = storageUsed,
+                Users = dto.Users,
+                Photos = dto.Photos,
+                StorageUsed = dto.StorageUsed,
 
-                TotalUploads = totalUploads,
-                UploadsLast7Days = uploadsLast7Days,
+                TotalUploads = dto.TotalUploads,
+                UploadsLast7Days = dto.UploadsLast7Days,
 
-                LargestPhotoSize = largestPhotoSize,
-                AveragePhotoSize = averagePhotoSize,
+                LargestPhotoSize = dto.LargestPhotoSize,
+                AveragePhotoSize = dto.AveragePhotoSize,
 
-                TotalDownloads = downloadGroups.Sum(x => x.Count),
-                TopDownloadedPhotos = topDownloadedPhotos,
+                TotalDownloads = dto.TotalDownloads,
+                TopDownloadedPhotos = dto.TopDownloadedPhotos.Select(x => new PhotoDownloadStat
+                {
+                    PhotoId = x.PhotoId,
+                    DownloadCount = x.DownloadCount,
+                    Description = x.Description
+                }).ToList(),
 
-                StoragePerUser = storagePerUser
+                StoragePerUser = dto.StoragePerUser.Select(x => new UserStorageStat
+                {
+                    UserEmail = x.UserEmail,
+                    StorageUsed = x.StorageUsed
+                }).ToList()
             };
 
-            return View(stats);
+            return View(model);
         }
 
 
         [HttpGet]
-        [Authorize(Roles = "Administrator")]
         public IActionResult Search()
         {
             return View(new PhotoSearchCriteriaDto());
         }
 
         [HttpPost]
-        [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Search(PhotoSearchCriteriaDto criteria)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Search(PhotoSearchCriteriaDto criteria, CancellationToken ct)
         {
-            var results = await _photos.SearchAsync(criteria);
+            var results = await _photoQuery.SearchAsync(criteria);
             return View("SearchResults", results);
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PhotoGallery.Application.Abstractions;
+using PhotoGallery.Application.Abstractions.Repositories;
 using PhotoGallery.Infrastructure.DbContext;
 
 namespace PhotoGallery.Web.Controllers
@@ -10,21 +11,21 @@ namespace PhotoGallery.Web.Controllers
     /// </summary>
     public class FilesController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IPhotoRepository _photos;
         private readonly IPhotoStorageService _storage;
 
         public FilesController(
-            ApplicationDbContext context,
+            IPhotoRepository photos,
             IPhotoStorageService storage)
         {
-            _context = context;
+            _photos = photos;
             _storage = storage;
         }
 
         [HttpGet]
         public async Task<IActionResult> Photo(int id)
         {
-            var photo = await _context.Photos.FindAsync(id);
+            var photo = await _photos.FindAsync(id);
             if (photo == null)
                 return NotFound();
 
@@ -35,7 +36,7 @@ namespace PhotoGallery.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Thumbnail(int id)
         {
-            var photo = await _context.Photos.FindAsync(id);
+            var photo = await _photos.FindAsync(id);
             if (photo == null || string.IsNullOrEmpty(photo.ThumbnailStorageKey))
                 return NotFound();
 

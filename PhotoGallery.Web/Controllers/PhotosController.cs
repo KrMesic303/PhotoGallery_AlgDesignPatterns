@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application.Abstractions;
+using PhotoGallery.Application.Abstractions.Repositories;
 using PhotoGallery.Application.DTOs.PhotoGallery.Application.DTOs;
 using PhotoGallery.Domain.Entities;
-using PhotoGallery.Infrastructure.DbContext;
 using PhotoGallery.Infrastructure.ImageProcessing;
 using PhotoGallery.Web.ViewModels;
 using SixLabors.ImageSharp;
@@ -25,7 +24,8 @@ namespace PhotoGallery.Web.Controllers
     {
         private readonly IAuditLogger _auditLogger;
 
-        private readonly ApplicationDbContext _context;
+        private readonly IPhotoRepository _photos;
+        private readonly IHashtagRepository _hashtags;
         private readonly IPhotoStorageService _storage;
         private readonly IUploadQuotaService _quotaService;
         private readonly IPhotoUploadPolicy _uploadPolicy;
@@ -33,9 +33,18 @@ namespace PhotoGallery.Web.Controllers
         private readonly IImageProcessorFactory _processorFactory;
 
 
-        public PhotosController(ApplicationDbContext context, IPhotoStorageService storage, IPhotoUploadPolicy uploadPolicy, UserManager<ApplicationUser> userManager, IAuditLogger auditLogger, IUploadQuotaService quotaService, IImageProcessorFactory processorFactory )
+        public PhotosController(
+            IPhotoRepository photos, 
+            IHashtagRepository hashtags, 
+            IPhotoStorageService storage, 
+            IPhotoUploadPolicy uploadPolicy, 
+            UserManager<ApplicationUser> userManager, 
+            IAuditLogger auditLogger, 
+            IUploadQuotaService quotaService, 
+            IImageProcessorFactory processorFactory )
         {
-            _context = context;
+            _photos = photos;
+            _hashtags = hashtags;
             _storage = storage;
             _uploadPolicy = uploadPolicy;
             _userManager = userManager;
@@ -180,16 +189,14 @@ namespace PhotoGallery.Web.Controllers
             foreach (var tag in (hashtags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 var normalized = tag.ToLowerInvariant();
-                var hashtagEntity = await _context.Hashtags
-                    .FirstOrDefaultAsync(h => h.Value == normalized)
-                    ?? new Hashtag { Value = normalized };
+                var hashtagEntity = await _hashtags.GetOrCreateAsync(normalized);
 
                 photo.Hashtags.Add(new PhotoHashtag { Hashtag = hashtagEntity });
             }
 
             // DB save
-            _context.Photos.Add(photo);
-            await _context.SaveChangesAsync();
+            _photos.Add(photo);
+            await _photos.SaveChangesAsync();
 
             // Audit log
             await _auditLogger.LogAsync(user.Id, action: "UPLOAD_PHOTO", entityType: nameof(Photo), entityId: photo.Id.ToString());
@@ -204,10 +211,7 @@ namespace PhotoGallery.Web.Controllers
             if (user == null)
                 return Unauthorized();
 
-            var photo = await _context.Photos
-                .Include(p => p.Hashtags)
-                .ThenInclude(ph => ph.Hashtag)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            var photo = await _photos.GetWithHashtagsAsync(id);
 
             if (photo == null)
                 return NotFound();
@@ -237,10 +241,7 @@ namespace PhotoGallery.Web.Controllers
             if (user == null)
                 return Unauthorized();
 
-            var photo = await _context.Photos
-                .Include(p => p.Hashtags)
-                .ThenInclude(ph => ph.Hashtag)
-                .FirstOrDefaultAsync(p => p.Id == model.PhotoId);
+            var photo = await _photos.GetWithHashtagsAsync(model.PhotoId);
 
             if (photo == null)
                 return NotFound();
@@ -250,20 +251,18 @@ namespace PhotoGallery.Web.Controllers
                 return Forbid();
 
             photo.Description = model.Description;
-            
+
             photo.Hashtags.Clear();
+
             foreach (var tag in (model.Hashtags ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 var normalized = tag.ToLowerInvariant();
-
-                var hashtag = await _context.Hashtags
-                    .FirstOrDefaultAsync(h => h.Value == normalized)
-                    ?? new Hashtag { Value = normalized };
+                var hashtag = await _hashtags.GetOrCreateAsync(normalized);
 
                 photo.Hashtags.Add(new PhotoHashtag { Hashtag = hashtag });
             }
 
-            await _context.SaveChangesAsync();
+            await _photos.SaveChangesAsync();
 
             await _auditLogger.LogAsync(user.Id, action: "EDIT_PHOTO_METADATA", entityType: nameof(Photo), entityId: photo.Id.ToString());
 
@@ -274,7 +273,7 @@ namespace PhotoGallery.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Download(int id)
         {
-            var photo = await _context.Photos.FindAsync(id);
+            var photo = await _photos.FindAsync(id);
             if (photo == null)
                 return NotFound();
 
@@ -288,7 +287,7 @@ namespace PhotoGallery.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> Download(DownloadPhotoViewModel model)
         {
-            var photo = await _context.Photos.FindAsync(model.PhotoId);
+            var photo = await _photos.FindAsync(model.PhotoId);
             if (photo == null)
                 return NotFound();
 
@@ -341,7 +340,7 @@ namespace PhotoGallery.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var photo = await _context.Photos.FindAsync(id);
+            var photo = await _photos.FindAsync(id);
             if (photo == null)
                 return NotFound();
 
@@ -351,8 +350,8 @@ namespace PhotoGallery.Web.Controllers
             if (!string.IsNullOrEmpty(photo.ThumbnailStorageKey))
                 await _storage.DeleteAsync(photo.ThumbnailStorageKey);
 
-            _context.Photos.Remove(photo);
-            await _context.SaveChangesAsync();
+            _photos.Remove(photo);
+            await _photos.SaveChangesAsync();
 
             await _auditLogger.LogAsync(
                 userId: User.FindFirst(ClaimTypes.NameIdentifier)!.Value,

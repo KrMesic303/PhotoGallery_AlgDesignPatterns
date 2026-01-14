@@ -16,4 +16,12 @@
     <ProjectReference Include="..\PhotoGallery.Domain\PhotoGallery.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="UseCases\Files\" />
+    <Folder Include="UseCases\Photos\Edit\" />
+    <Folder Include="UseCases\Photos\Delete\" />
+    <Folder Include="UseCases\Photos\Download\" />
+    <Folder Include="UseCases\Photos\Upload\" />
+  </ItemGroup>
+
 </Project>

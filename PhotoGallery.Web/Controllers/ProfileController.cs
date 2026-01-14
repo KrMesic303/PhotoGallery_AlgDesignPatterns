@@ -1,29 +1,31 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PhotoGallery.Infrastructure.DbContext;
+using PhotoGallery.Application.Abstractions.Queries;
 using System.Security.Claims;
 
-namespace PhotoGallery.Web.Controllers;
-
-[Authorize]
-public class ProfileController : Controller
+namespace PhotoGallery.Web.Controllers
 {
-    private readonly ApplicationDbContext _context;
-
-    public ProfileController(ApplicationDbContext context)
+    [Authorize]
+    public class ProfileController : Controller
     {
-        _context = context;
-    }
+        private readonly IUserProfileQueryService _profiles;
 
-    public async Task<IActionResult> Index()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await _context.Users.Include(u => u.PackagePlan)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+        public ProfileController(IUserProfileQueryService profiles)
+        {
+            _profiles = profiles;
+        }
 
-        if (user == null) return NotFound();
+        public async Task<IActionResult> Index(CancellationToken ct)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
 
-        return View(user);
+            var user = await _profiles.GetUserWithPlanAsync(userId, ct);
+            if (user == null)
+                return NotFound();
+
+            return View(user);
+        }
     }
 }

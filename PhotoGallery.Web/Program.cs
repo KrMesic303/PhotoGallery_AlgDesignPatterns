@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using PhotoGallery.Application;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Domain.Entities;
+using PhotoGallery.Infrastructure;
 using PhotoGallery.Infrastructure.DbContext;
 using PhotoGallery.Infrastructure.ImageProcessing;
 using PhotoGallery.Infrastructure.Logging;
@@ -20,8 +22,9 @@ namespace PhotoGallery.Web
             // MVC
             builder.Services.AddControllersWithViews();
 
-            // Database
-            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            // Application + Infrastructure registration
+            builder.Services.AddApplication();
+            builder.Services.AddInfrastructure(builder.Configuration);
 
             // Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -51,26 +54,6 @@ namespace PhotoGallery.Web
                     options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"]!;
                     options.Scope.Add("user:email");
                 });
-
-            // Strategy pattern - switching between different behaviours (storage, policies, logging)
-            builder.Services.AddScoped<IImageProcessorFactory, ImageProcessorFactory>();
-            builder.Services.AddScoped<IAuditLogger, AuditLogger>();
-            builder.Services.AddScoped<IUploadQuotaService, UploadQuotaService>();
-            builder.Services.AddScoped<IPhotoUploadPolicy, PhotoUploadPolicy>();
-            builder.Services.AddScoped<IPhotoQueryService, PhotoQueryService>();
-
-            // Storage abstraction (can add S3 storage, or example like Google cloud storage)
-            // PATTERN: Factory pattern (DI registrations) - Storage and image processing configuraiton
-            var provider = builder.Configuration["Storage:Provider"] ?? "Local";
-
-            if (provider.Equals("Gcs", StringComparison.OrdinalIgnoreCase))
-            {
-                builder.Services.AddScoped<IPhotoStorageService, PhotoGallery.Infrastructure.Storage.GcsPhotoStorageService>();
-            }
-            else
-            {
-                builder.Services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();
-            }
 
             var app = builder.Build();
 
@@ -109,7 +92,6 @@ namespace PhotoGallery.Web
             app.UseStaticFiles();
 
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
 

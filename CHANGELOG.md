@@ -1,6 +1,10 @@
 # PhotoGallery Application
 
-# 0.0.12
+# 0.0.14
+**Added**
+	- Observer pattern
+
+# 0.0.13
 **Added**
 	- Template pattern
 

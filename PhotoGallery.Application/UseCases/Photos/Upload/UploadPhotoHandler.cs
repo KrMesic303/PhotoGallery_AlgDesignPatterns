@@ -1,5 +1,7 @@
 ﻿using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Repositories;
+using PhotoGallery.Application.Events;
+using PhotoGallery.Application.Events.Photos;
 using PhotoGallery.Domain.Entities;
 
 namespace PhotoGallery.Application.UseCases.Photos.Upload
@@ -11,19 +13,22 @@ namespace PhotoGallery.Application.UseCases.Photos.Upload
         private readonly IPhotoStorageService _storage;
         private readonly IPhotoRepository _photos;
         private readonly IHashtagRepository _hashtags;
+        private readonly IEventPublisher _events;
 
         public UploadPhotoHandler(
             IPhotoUploadPolicy uploadPolicy,
             IImageTransformService imageTransform,
             IPhotoStorageService storage,
             IPhotoRepository photos,
-            IHashtagRepository hashtags)
+            IHashtagRepository hashtags,
+            IEventPublisher events)
         {
             _uploadPolicy = uploadPolicy;
             _imageTransform = imageTransform;
             _storage = storage;
             _photos = photos;
             _hashtags = hashtags;
+            _events = events;
         }
 
         public async Task<UploadPhotoResult> HandleAsync(UploadPhotoCommand command, CancellationToken cancellationToken = default)
@@ -117,6 +122,8 @@ namespace PhotoGallery.Application.UseCases.Photos.Upload
 
             _photos.Add(photo);
             await _photos.SaveChangesAsync(cancellationToken);
+
+            await _events.PublishAsync(new PhotoUploadedEvent(photo.Id, command.User.Id), cancellationToken);
 
             return new UploadPhotoResult { PhotoId = photo.Id };
         }

@@ -22,6 +22,8 @@ namespace PhotoGallery.Infrastructure.DbContext
 
         // Audit Logs
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+        public DbSet<AppMetric> AppMetrics => Set<AppMetric>();
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -70,6 +72,20 @@ namespace PhotoGallery.Infrastructure.DbContext
 
             builder.Entity<PhotoFilter>()
                 .HasIndex(f => f.FilterType);
+
+            builder.Entity<AppMetric>()
+                .HasIndex(m => m.Key)
+                .IsUnique();
+
+            var seedTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            builder.Entity<AppMetric>().HasData(
+                new AppMetric { Id = 1, Key = "TOTAL_UPLOADS", Value = 0, UpdatedAtUtc = seedTime },
+                new AppMetric { Id = 2, Key = "TOTAL_DOWNLOADS", Value = 0, UpdatedAtUtc = seedTime },
+                new AppMetric { Id = 3, Key = "TOTAL_DELETES", Value = 0, UpdatedAtUtc = seedTime }
+            );
+
+
         }
     }
 }

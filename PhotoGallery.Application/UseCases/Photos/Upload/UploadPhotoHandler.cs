@@ -6,30 +6,20 @@ using PhotoGallery.Domain.Entities;
 
 namespace PhotoGallery.Application.UseCases.Photos.Upload
 {
-    public sealed class UploadPhotoHandler : IUploadPhotoHandler
+    public sealed class UploadPhotoHandler(
+        IPhotoUploadPolicy uploadPolicy,
+        IImageTransformService imageTransform,
+        IPhotoStorageService storage,
+        IPhotoRepository photos,
+        IHashtagRepository hashtags,
+        IEventPublisher events) : IUploadPhotoHandler
     {
-        private readonly IPhotoUploadPolicy _uploadPolicy;
-        private readonly IImageTransformService _imageTransform;
-        private readonly IPhotoStorageService _storage;
-        private readonly IPhotoRepository _photos;
-        private readonly IHashtagRepository _hashtags;
-        private readonly IEventPublisher _events;
-
-        public UploadPhotoHandler(
-            IPhotoUploadPolicy uploadPolicy,
-            IImageTransformService imageTransform,
-            IPhotoStorageService storage,
-            IPhotoRepository photos,
-            IHashtagRepository hashtags,
-            IEventPublisher events)
-        {
-            _uploadPolicy = uploadPolicy;
-            _imageTransform = imageTransform;
-            _storage = storage;
-            _photos = photos;
-            _hashtags = hashtags;
-            _events = events;
-        }
+        private readonly IPhotoUploadPolicy _uploadPolicy = uploadPolicy;
+        private readonly IImageTransformService _imageTransform = imageTransform;
+        private readonly IPhotoStorageService _storage = storage;
+        private readonly IPhotoRepository _photos = photos;
+        private readonly IHashtagRepository _hashtags = hashtags;
+        private readonly IEventPublisher _events = events;
 
         public async Task<UploadPhotoResult> HandleAsync(UploadPhotoCommand command, CancellationToken cancellationToken = default)
         {

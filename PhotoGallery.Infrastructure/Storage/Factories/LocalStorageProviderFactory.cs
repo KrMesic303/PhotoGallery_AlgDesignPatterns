@@ -4,14 +4,9 @@ using PhotoGallery.Application.Abstractions.Storage;
 
 namespace PhotoGallery.Infrastructure.Storage.Factories
 {
-    public sealed class LocalStorageProviderFactory : IStorageProviderFactory
+    public sealed class LocalStorageProviderFactory(IWebHostEnvironment env) : IStorageProviderFactory
     {
-        private readonly IWebHostEnvironment _env;
-
-        public LocalStorageProviderFactory(IWebHostEnvironment env)
-        {
-            _env = env;
-        }
+        private readonly IWebHostEnvironment _env = env;
 
         public IPhotoStorageService CreatePhotoStorageService() => new LocalPhotoStorageService(_env);
     }

@@ -7,14 +7,9 @@ namespace PhotoGallery.Infrastructure.EventHandlers
     /// <summary>
     /// PATTERN: Observer - Concrete
     /// </summary>
-    public sealed class PhotoMetricEventHandler : IDomainEventHandler<PhotoUploadedEvent>, IDomainEventHandler<PhotoDownloadedEvent>, IDomainEventHandler<PhotoDeletedEvent>
+    public sealed class PhotoMetricEventHandler(IAppMetricStore metrics) : IDomainEventHandler<PhotoUploadedEvent>, IDomainEventHandler<PhotoDownloadedEvent>, IDomainEventHandler<PhotoDeletedEvent>
     {
-        private readonly IAppMetricStore _metrics;
-
-        public PhotoMetricEventHandler(IAppMetricStore metrics)
-        {
-            _metrics = metrics;
-        }
+        private readonly IAppMetricStore _metrics = metrics;
 
         public Task HandleAsync(PhotoUploadedEvent domainEvent, CancellationToken cancellationToken = default) => _metrics.IncrementAsync("TOTAL_UPLOADS", 1, cancellationToken);
 

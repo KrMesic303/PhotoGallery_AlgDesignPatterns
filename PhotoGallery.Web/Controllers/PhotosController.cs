@@ -15,34 +15,23 @@ using System.Security.Claims;
 namespace PhotoGallery.Web.Controllers
 {
     [Authorize]
-    public class PhotosController : Controller
+    public class PhotosController(
+        UserManager<ApplicationUser> userManager,
+        IUploadQuotaService quotaService,
+        IUploadPhotoHandler uploadHandler,
+        IEditPhotoMetadataHandler editHandler,
+        IDeletePhotoHandler deleteHandler,
+        IDownloadPhotoHandler downloadHandler,
+        IGetEditPhotoHandler getEditHandler) : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IUploadQuotaService _quotaService;
+        private readonly UserManager<ApplicationUser> _userManager = userManager;
+        private readonly IUploadQuotaService _quotaService = quotaService;
 
-        private readonly IUploadPhotoHandler _uploadHandler;
-        private readonly IEditPhotoMetadataHandler _editHandler;
-        private readonly IDeletePhotoHandler _deleteHandler;
-        private readonly IDownloadPhotoHandler _downloadHandler;
-        private readonly IGetEditPhotoHandler _getEditHandler;
-
-        public PhotosController(
-            UserManager<ApplicationUser> userManager,
-            IUploadQuotaService quotaService,
-            IUploadPhotoHandler uploadHandler,
-            IEditPhotoMetadataHandler editHandler,
-            IDeletePhotoHandler deleteHandler,
-            IDownloadPhotoHandler downloadHandler,
-            IGetEditPhotoHandler getEditHandler)
-        {
-            _userManager = userManager;
-            _quotaService = quotaService;
-            _uploadHandler = uploadHandler;
-            _editHandler = editHandler;
-            _deleteHandler = deleteHandler;
-            _downloadHandler = downloadHandler;
-            _getEditHandler = getEditHandler;
-        }
+        private readonly IUploadPhotoHandler _uploadHandler = uploadHandler;
+        private readonly IEditPhotoMetadataHandler _editHandler = editHandler;
+        private readonly IDeletePhotoHandler _deleteHandler = deleteHandler;
+        private readonly IDownloadPhotoHandler _downloadHandler = downloadHandler;
+        private readonly IGetEditPhotoHandler _getEditHandler = getEditHandler;
 
         // GET: /Photos/Upload
         [HttpGet]

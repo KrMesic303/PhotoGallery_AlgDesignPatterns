@@ -4,14 +4,9 @@ using PhotoGallery.Application.Abstractions.Storage;
 
 namespace PhotoGallery.Infrastructure.Storage.Factories
 {
-    public sealed class GcsStorageProviderFactory : IStorageProviderFactory
+    public sealed class GcsStorageProviderFactory(IConfiguration config) : IStorageProviderFactory
     {
-        private readonly IConfiguration _config;
-
-        public GcsStorageProviderFactory(IConfiguration config)
-        {
-            _config = config;
-        }
+        private readonly IConfiguration _config = config;
 
         public IPhotoStorageService CreatePhotoStorageService() => new GcsPhotoStorageService(_config);
     }

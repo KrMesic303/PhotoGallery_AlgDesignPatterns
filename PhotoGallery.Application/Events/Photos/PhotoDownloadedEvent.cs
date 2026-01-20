@@ -1,18 +1,10 @@
 ﻿namespace PhotoGallery.Application.Events.Photos
 {
-    public sealed class PhotoDownloadedEvent : IDomainEvent
+    public sealed class PhotoDownloadedEvent(int photoId, string userIdOrAnonymous, bool original) : IDomainEvent
     {
-        public PhotoDownloadedEvent(int photoId, string userIdOrAnonymous, bool original)
-        {
-            PhotoId = photoId;
-            UserIdOrAnonymous = userIdOrAnonymous;
-            Original = original;
-            OccurredAtUtc = DateTime.UtcNow;
-        }
-
-        public int PhotoId { get; }
-        public string UserIdOrAnonymous { get; }
-        public bool Original { get; }
-        public DateTime OccurredAtUtc { get; }
+        public int PhotoId { get; } = photoId;
+        public string UserIdOrAnonymous { get; } = userIdOrAnonymous;
+        public bool Original { get; } = original;
+        public DateTime OccurredAtUtc { get; } = DateTime.UtcNow;
     }
 }

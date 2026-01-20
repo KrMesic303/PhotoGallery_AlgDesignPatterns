@@ -7,16 +7,10 @@ namespace PhotoGallery.Infrastructure.ImageProcessing
     /// <summary>
     /// PATTERN: Template class
     /// </summary>
-    public sealed class ImageSharpTransformService : IImageTransformService
+    public sealed class ImageSharpTransformService(StorageImageTransformTemplate storageTemplate, DownloadImageTransformTemplate downloadTemplate) : IImageTransformService
     {
-        private readonly StorageImageTransformTemplate _storageTemplate;
-        private readonly DownloadImageTransformTemplate _downloadTemplate;
-
-        public ImageSharpTransformService(StorageImageTransformTemplate storageTemplate, DownloadImageTransformTemplate downloadTemplate)
-        {
-            _storageTemplate = storageTemplate;
-            _downloadTemplate = downloadTemplate;
-        }
+        private readonly StorageImageTransformTemplate _storageTemplate = storageTemplate;
+        private readonly DownloadImageTransformTemplate _downloadTemplate = downloadTemplate;
 
         public Task<ImageTransformResult> TransformForStorageAsync(Stream input, string originalFileName, ImageProcessingOptionsDto options, CancellationToken cancellationToken = default)
         {

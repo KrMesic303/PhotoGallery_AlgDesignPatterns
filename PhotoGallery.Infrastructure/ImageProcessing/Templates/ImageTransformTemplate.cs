@@ -11,14 +11,9 @@ namespace PhotoGallery.Infrastructure.ImageProcessing.Templates
     /// <summary>
     /// PATTERN: Template Method
     /// </summary>
-    public abstract class ImageTransformTemplate
+    public abstract class ImageTransformTemplate(IImageProcessorFactory processorFactory)
     {
-        private readonly IImageProcessorFactory _processorFactory;
-
-        protected ImageTransformTemplate(IImageProcessorFactory processorFactory)
-        {
-            _processorFactory = processorFactory;
-        }
+        private readonly IImageProcessorFactory _processorFactory = processorFactory;
 
         // Template method
         public async Task<ImageTransformResult> TransformAsync(Stream input, string originalFileName, ImageProcessingOptionsDto options, CancellationToken ct)

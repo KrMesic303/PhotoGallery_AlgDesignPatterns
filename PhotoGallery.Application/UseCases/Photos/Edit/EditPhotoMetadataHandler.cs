@@ -3,24 +3,14 @@ using PhotoGallery.Domain.Entities;
 
 namespace PhotoGallery.Application.UseCases.Photos.Edit
 {
-    public sealed class EditPhotoMetadataHandler : IEditPhotoMetadataHandler
+    public sealed class EditPhotoMetadataHandler(IPhotoRepository photos, IHashtagRepository hashtags) : IEditPhotoMetadataHandler
     {
-        private readonly IPhotoRepository _photos;
-        private readonly IHashtagRepository _hashtags;
-
-        public EditPhotoMetadataHandler(IPhotoRepository photos, IHashtagRepository hashtags)
-        {
-            _photos = photos;
-            _hashtags = hashtags;
-
-        }
+        private readonly IPhotoRepository _photos = photos;
+        private readonly IHashtagRepository _hashtags = hashtags;
 
         public async Task HandleAsync(EditPhotoMetadataCommand command, CancellationToken cancellationToken = default)
         {
-            var photo = await _photos.GetWithHashtagsAsync(command.PhotoId, cancellationToken);
-            if (photo == null)
-                throw new KeyNotFoundException("Photo not found.");
-
+            var photo = await _photos.GetWithHashtagsAsync(command.PhotoId, cancellationToken) ?? throw new KeyNotFoundException("Photo not found.");
             if (photo.UserId != command.UserId && !command.IsAdmin)
                 throw new UnauthorizedAccessException("Forbidden.");
 

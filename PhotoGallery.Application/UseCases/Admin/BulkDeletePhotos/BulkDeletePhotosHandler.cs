@@ -4,21 +4,14 @@ using PhotoGallery.Application.Abstractions.Repositories;
 
 namespace PhotoGallery.Application.UseCases.Admin.BulkDeletePhotos
 {
-    public sealed class BulkDeletePhotosHandler : IBulkDeletePhotosHandler
+    public sealed class BulkDeletePhotosHandler(
+        IAdminPhotoQueryService adminPhotos,
+        IPhotoRepository photosRepository,
+        IPhotoStorageService storage) : IBulkDeletePhotosHandler
     {
-        private readonly IAdminPhotoQueryService _adminPhotos;
-        private readonly IPhotoRepository _photos;
-        private readonly IPhotoStorageService _storage;
-
-        public BulkDeletePhotosHandler(
-            IAdminPhotoQueryService adminPhotos,
-            IPhotoRepository photos,
-            IPhotoStorageService storage)
-        {
-            _adminPhotos = adminPhotos;
-            _photos = photos;
-            _storage = storage;
-        }
+        private readonly IAdminPhotoQueryService _adminPhotos = adminPhotos;
+        private readonly IPhotoRepository _photos = photosRepository;
+        private readonly IPhotoStorageService _storage = storage;
 
         public async Task HandleAsync(BulkDeletePhotosCommand command, CancellationToken cancellationToken = default)
         {

@@ -7,14 +7,9 @@ namespace PhotoGallery.Web.Controllers
     /// <summary>
     /// PATTERN: Command
     /// </summary>
-    public class GalleryController : Controller
+    public class GalleryController(IPhotoQueryService photos) : Controller
     {
-        private readonly IPhotoQueryService _photos;
-
-        public GalleryController(IPhotoQueryService photos)
-        {
-            _photos = photos;
-        }
+        private readonly IPhotoQueryService _photos = photos;
 
         [HttpGet]
         public async Task<IActionResult> Index(int page = 1, CancellationToken ct = default)

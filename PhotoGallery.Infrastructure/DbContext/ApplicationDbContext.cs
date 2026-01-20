@@ -4,12 +4,8 @@ using PhotoGallery.Domain.Entities;
 
 namespace PhotoGallery.Infrastructure.DbContext
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
 
         // Repository pattern (SRP)
         public DbSet<PackagePlan> PackagePlans => Set<PackagePlan>();

@@ -8,14 +8,9 @@ namespace PhotoGallery.Infrastructure.Logging
     /// PATTERN: Observer - Decorator
     /// SOLID: Open/Closed principle
     /// </summary>
-    public class AuditLogger : IAuditLogger
+    public class AuditLogger(ApplicationDbContext context) : IAuditLogger
     {
-        private readonly ApplicationDbContext _context;
-
-        public AuditLogger(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task LogAsync(string userId, string action, string? entityType = null, string? entityId = null, CancellationToken cancellationToken = default)
         {

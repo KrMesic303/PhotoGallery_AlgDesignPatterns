@@ -5,14 +5,9 @@ using PhotoGallery.Infrastructure.DbContext;
 
 namespace PhotoGallery.Infrastructure.Queries.Admin
 {
-    public sealed class AdminStatisticsQueryService : IAdminStatisticsQueryService
+    public sealed class AdminStatisticsQueryService(ApplicationDbContext context) : IAdminStatisticsQueryService
     {
-        private readonly ApplicationDbContext _context;
-
-        public AdminStatisticsQueryService(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task<AdminStatisticsDto> GetStatisticsAsync(CancellationToken cancellationToken = default)
         {

@@ -5,14 +5,9 @@ using PhotoGallery.Infrastructure.DbContext;
 
 namespace PhotoGallery.Infrastructure.Metrics
 {
-    public sealed class EfAppMetricStore : IAppMetricStore
+    public sealed class EfAppMetricStore(ApplicationDbContext context) : IAppMetricStore
     {
-        private readonly ApplicationDbContext _context;
-
-        public EfAppMetricStore(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task IncrementAsync(string key, long delta, CancellationToken cancellationToken = default)
         {

@@ -5,31 +5,20 @@ using PhotoGallery.Application.Events.Photos;
 
 namespace PhotoGallery.Application.UseCases.Photos.Download
 {
-    public sealed class DownloadPhotoHandler : IDownloadPhotoHandler
+    public sealed class DownloadPhotoHandler(
+        IPhotoRepository photos,
+        IPhotoStorageService storage,
+        IImageTransformService transform,
+        IEventPublisher events) : IDownloadPhotoHandler
     {
-        private readonly IPhotoRepository _photos;
-        private readonly IPhotoStorageService _storage;
-        private readonly IImageTransformService _transform;
-        private readonly IEventPublisher _events;
-
-        public DownloadPhotoHandler(
-            IPhotoRepository photos,
-            IPhotoStorageService storage,
-            IImageTransformService transform,
-            IEventPublisher events)
-        {
-            _photos = photos;
-            _storage = storage;
-            _transform = transform;
-            _events = events;
-        }
+        private readonly IPhotoRepository _photos = photos;
+        private readonly IPhotoStorageService _storage = storage;
+        private readonly IImageTransformService _transform = transform;
+        private readonly IEventPublisher _events = events;
 
         public async Task<DownloadPhotoResult> HandleAsync(DownloadPhotoQuery query, CancellationToken cancellationToken = default)
         {
-            var photo = await _photos.FindAsync(query.PhotoId, cancellationToken);
-            if (photo == null)
-                throw new KeyNotFoundException("Photo not found.");
-
+            var photo = await _photos.FindAsync(query.PhotoId, cancellationToken) ?? throw new KeyNotFoundException("Photo not found.");
             if (query.DownloadOriginal)
             {
                 // Do NOT dispose this stream here - its disposed later by ASP.NET

@@ -7,16 +7,10 @@ namespace PhotoGallery.Infrastructure.Storage.Factories
     /// <summary>
     /// PATTERN: Abstract factory : selector
     /// </summary>
-    public sealed class StorageProviderFactorySelector
+    public sealed class StorageProviderFactorySelector(IConfiguration config, IServiceProvider sp)
     {
-        private readonly IConfiguration _config;
-        private readonly IServiceProvider _sp;
-
-        public StorageProviderFactorySelector(IConfiguration config, IServiceProvider sp)
-        {
-            _config = config;
-            _sp = sp;
-        }
+        private readonly IConfiguration _config = config;
+        private readonly IServiceProvider _sp = sp;
 
         public IStorageProviderFactory Select()
         {

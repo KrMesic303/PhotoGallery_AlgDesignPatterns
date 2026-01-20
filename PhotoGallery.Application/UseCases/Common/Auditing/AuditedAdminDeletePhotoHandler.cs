@@ -7,16 +7,10 @@ namespace PhotoGallery.Application.UseCases.Common.Auditing
     /// <summary>
     /// PATTERN: Decorator
     /// </summary>
-    public sealed class AuditedAdminDeletePhotoHandler : IAdminDeletePhotoHandler
+    public sealed class AuditedAdminDeletePhotoHandler(IAdminDeletePhotoHandler inner, IAuditLogger audit) : IAdminDeletePhotoHandler
     {
-        private readonly IAdminDeletePhotoHandler _inner;
-        private readonly IAuditLogger _audit;
-
-        public AuditedAdminDeletePhotoHandler(IAdminDeletePhotoHandler inner, IAuditLogger audit)
-        {
-            _inner = inner;
-            _audit = audit;
-        }
+        private readonly IAdminDeletePhotoHandler _inner = inner;
+        private readonly IAuditLogger _audit = audit;
 
         public async Task HandleAsync(AdminDeletePhotoCommand command, CancellationToken cancellationToken = default)
         {

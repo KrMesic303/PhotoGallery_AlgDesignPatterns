@@ -6,14 +6,9 @@ namespace PhotoGallery.Infrastructure.Events
     /// <summary>
     /// PATTERN: Observer
     /// </summary>
-    public sealed class InProcessEventPublisher : IEventPublisher
+    public sealed class InProcessEventPublisher(IServiceProvider serviceProvider) : IEventPublisher
     {
-        private readonly IServiceProvider _serviceProvider;
-
-        public InProcessEventPublisher(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
 
         public async Task PublishAsync<TEvent>(TEvent domainEvent, CancellationToken cancellationToken = default)
             where TEvent : IDomainEvent

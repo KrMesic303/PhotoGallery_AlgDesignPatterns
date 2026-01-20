@@ -108,7 +108,7 @@ namespace PhotoGallery.Web
 
             app.MapRazorPages(); // register / login pages
 
-            app.Run();
+            await app.RunAsync();
 
         }
     }

@@ -9,18 +9,11 @@ namespace PhotoGallery.Application.UseCases.Common.Auditing
     /// <summary>
     /// PATTERN: Decorator
     /// </summary>
-    public sealed class AuditedChangePackageHandler : IChangePackageHandler
+    public sealed class AuditedChangePackageHandler(IChangePackageHandler inner, IAuditLogger audit, IEventPublisher events) : IChangePackageHandler
     {
-        private readonly IChangePackageHandler _inner;
-        private readonly IAuditLogger _audit;
-        private readonly IEventPublisher _events;
-
-        public AuditedChangePackageHandler(IChangePackageHandler inner, IAuditLogger audit, IEventPublisher events)
-        {
-            _inner = inner;
-            _audit = audit;
-            _events = events;
-        }
+        private readonly IChangePackageHandler _inner = inner;
+        private readonly IAuditLogger _audit = audit;
+        private readonly IEventPublisher _events = events;
 
         public async Task HandleAsync(ChangePackageCommand command, CancellationToken cancellationToken = default)
         {

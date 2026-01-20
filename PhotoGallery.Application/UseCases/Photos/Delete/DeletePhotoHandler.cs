@@ -5,25 +5,15 @@ using PhotoGallery.Application.Events.Photos;
 
 namespace PhotoGallery.Application.UseCases.Photos.Delete
 {
-    public sealed class DeletePhotoHandler : IDeletePhotoHandler
+    public sealed class DeletePhotoHandler(IPhotoRepository photos, IPhotoStorageService storage, IEventPublisher events) : IDeletePhotoHandler
     {
-        private readonly IPhotoRepository _photos;
-        private readonly IPhotoStorageService _storage;
-        private readonly IEventPublisher _events;
-
-        public DeletePhotoHandler(IPhotoRepository photos, IPhotoStorageService storage, IEventPublisher events)
-        {
-            _photos = photos;
-            _storage = storage;
-            _events = events;
-        }
+        private readonly IPhotoRepository _photos = photos;
+        private readonly IPhotoStorageService _storage = storage;
+        private readonly IEventPublisher _events = events;
 
         public async Task HandleAsync(DeletePhotoCommand command, CancellationToken cancellationToken = default)
         {
-            var photo = await _photos.FindAsync(command.PhotoId, cancellationToken);
-            if (photo == null)
-                throw new KeyNotFoundException("Photo not found.");
-
+            var photo = await _photos.FindAsync(command.PhotoId, cancellationToken) ?? throw new KeyNotFoundException("Photo not found.");
             if (photo.UserId != command.UserId && !command.IsAdmin)
                 throw new UnauthorizedAccessException("Forbidden.");
 

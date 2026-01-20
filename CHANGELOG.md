@@ -1,4 +1,9 @@
 # PhotoGallery Application
+
+# 0.0.10
+**Changed**
+- Controllers are independent of DbContext class, they use services
+
 # 0.0.9
 **Added**
 - Pagination support on Gallery main page (10 photos per page)

@@ -2,14 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client.Extensions.Msal;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Queries;
 using PhotoGallery.Application.Abstractions.Repositories;
 using PhotoGallery.Application.DTOs;
 using PhotoGallery.Domain.Entities;
-using PhotoGallery.Infrastructure.DbContext;
-using PhotoGallery.Infrastructure.Logging;
 using PhotoGallery.Web.ViewModels;
 using System.Security.Claims;
 

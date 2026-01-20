@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Repositories;
-using PhotoGallery.Infrastructure.DbContext;
 
 namespace PhotoGallery.Web.Controllers
 {

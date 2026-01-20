@@ -34,6 +34,7 @@ namespace PhotoGallery.Infrastructure
             services.AddScoped<IUserProfileQueryService, UserProfileQueryService>();
 
             // Infrastructure services
+            services.AddScoped<IImageTransformService, ImageSharpTransformService>();
             services.AddScoped<IImageProcessorFactory, ImageProcessorFactory>();
             services.AddScoped<IAuditLogger, AuditLogger>();
             services.AddScoped<IUploadQuotaService, UploadQuotaService>();

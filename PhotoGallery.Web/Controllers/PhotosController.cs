@@ -5,13 +5,8 @@ using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Repositories;
 using PhotoGallery.Application.DTOs.PhotoGallery.Application.DTOs;
 using PhotoGallery.Domain.Entities;
-using PhotoGallery.Infrastructure.ImageProcessing;
 using PhotoGallery.Web.ViewModels;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Bmp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
 using System.Security.Claims;
 
 namespace PhotoGallery.Web.Controllers
@@ -31,17 +26,17 @@ namespace PhotoGallery.Web.Controllers
         private readonly IPhotoUploadPolicy _uploadPolicy;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IImageProcessorFactory _processorFactory;
-
+        private readonly IImageTransformService _imageTransform;
 
         public PhotosController(
-            IPhotoRepository photos, 
-            IHashtagRepository hashtags, 
-            IPhotoStorageService storage, 
-            IPhotoUploadPolicy uploadPolicy, 
-            UserManager<ApplicationUser> userManager, 
-            IAuditLogger auditLogger, 
-            IUploadQuotaService quotaService, 
-            IImageProcessorFactory processorFactory )
+            IPhotoRepository photos,
+            IHashtagRepository hashtags,
+            IPhotoStorageService storage,
+            IPhotoUploadPolicy uploadPolicy,
+            UserManager<ApplicationUser> userManager,
+            IAuditLogger auditLogger,
+            IUploadQuotaService quotaService,
+            IImageTransformService imageTransform)
         {
             _photos = photos;
             _hashtags = hashtags;
@@ -50,7 +45,7 @@ namespace PhotoGallery.Web.Controllers
             _userManager = userManager;
             _auditLogger = auditLogger;
             _quotaService = quotaService;
-            _processorFactory = processorFactory;
+            _imageTransform = imageTransform;
         }
 
         // Command pattern ( SRP - controller invokes commands and services/classes receive commands)
@@ -110,44 +105,43 @@ namespace PhotoGallery.Web.Controllers
                 BlurAmount = blurAmount
             };
 
-            var pipeline = new ImageProcessingPipeline();
-            pipeline.AddProcessors(_processorFactory.Create(options));
+            await using var transformed = await _imageTransform.TransformForStorageAsync(
+                input: file.OpenReadStream(),
+                originalFileName: file.FileName,
+                options: options, 
+                cancellationToken: HttpContext.RequestAborted);
 
-            var processedImage = pipeline.Execute(originalImage);
+            // Save to storage
+            var storageFileName = Path.GetFileNameWithoutExtension(file.FileName) + transformed.ImageExtension;
+            var storageKey = await _storage.SaveAsync(
+                transformed.ImageStream,
+                storageFileName,
+                transformed.ImageContentType,
+                HttpContext.RequestAborted);
 
-            using var imageStream = new MemoryStream();
-            SaveImage(processedImage, imageStream, options.OutputFormat);
-            imageStream.Position = 0;
+            // Thumbnail
+            string thumbnailKey = string.Empty;
+            if (transformed.ThumbnailStream != null)
+            {
+                thumbnailKey = await _storage.SaveAsync(
+                    transformed.ThumbnailStream,
+                    "thumb_" + Path.GetFileNameWithoutExtension(file.FileName) + (transformed.ThumbnailExtension ?? ".jpg"),
+                    transformed.ThumbnailContentType ?? "image/jpeg",
+                    HttpContext.RequestAborted);
+            }
 
-            var extension = GetExtension(options.OutputFormat);
-            var contentType = GetContentType(options.OutputFormat);
-
-            var storageKey = await _storage.SaveAsync(imageStream, Path.GetFileNameWithoutExtension(file.FileName) + extension, contentType);
-
-            // Thumnail
-            using var thumbImage = processedImage.Clone(ctx =>
-                ctx.Resize(new ResizeOptions
-                {
-                    Mode = ResizeMode.Crop,
-                    Size = new Size(300, 300)
-                }));
-
-            using var thumbStream = new MemoryStream();
-            await thumbImage.SaveAsJpegAsync(thumbStream);
-            thumbStream.Position = 0;
-
-            var thumbnailKey = await _storage.SaveAsync(thumbStream, "thumb_" + file.FileName, "image/jpeg");
-
+            // Create entity
             var photo = new Photo
             {
                 StorageKey = storageKey,
                 ThumbnailStorageKey = thumbnailKey,
                 OriginalFileName = file.FileName,
-                ContentType = file.ContentType,
-                SizeInBytes = imageStream.Length,
+                ContentType = transformed.ImageContentType,
+                SizeInBytes = transformed.ImageStream.Length,
                 Description = description ?? "",
                 UserId = user.Id
             };
+
 
             if (options.ResizeWidth.HasValue)
             {
@@ -297,8 +291,7 @@ namespace PhotoGallery.Web.Controllers
                 return File(originalStream, photo.ContentType, photo.OriginalFileName);
             }
 
-            using var sourceStream = await _storage.GetAsync(photo.StorageKey);
-            using var image = await Image.LoadAsync(sourceStream);
+            await using var sourceStream = await _storage.GetAsync(photo.StorageKey, HttpContext.RequestAborted);
 
             var options = new ImageProcessingOptionsDto
             {
@@ -309,20 +302,13 @@ namespace PhotoGallery.Web.Controllers
                 BlurAmount = model.BlurAmount
             };
 
-            var pipeline = new ImageProcessingPipeline();
-            // Abstract Factory Pattern
-            pipeline.AddProcessors(_processorFactory.Create(options));
+           var transformed = await _imageTransform.TransformForDownloadAsync(
+                input: sourceStream,
+                originalFileName: photo.OriginalFileName, 
+                options: options, 
+                cancellationToken: HttpContext.RequestAborted);
 
-            var processedImage = pipeline.Execute(image);
-
-            var output = new MemoryStream();
-            SaveImage(processedImage, output, options.OutputFormat);
-            output.Position = 0;
-
-            // Download
-            var extension = GetExtension(options.OutputFormat);
-            var fileName = Path.GetFileNameWithoutExtension(photo.OriginalFileName) + extension;
-            var contentType = GetContentType(options.OutputFormat);
+            var fileName = Path.GetFileNameWithoutExtension(photo.OriginalFileName) + transformed.ImageExtension;
 
             await _auditLogger.LogAsync(
                 userId: User.Identity?.IsAuthenticated == true
@@ -330,9 +316,10 @@ namespace PhotoGallery.Web.Controllers
                     : "ANONYMOUS",
                 action: "DOWNLOAD_PHOTO",
                 entityType: nameof(Photo),
-                entityId: photo.Id.ToString());
+                entityId: photo.Id.ToString(),
+                cancellationToken: HttpContext.RequestAborted);
 
-            return File(output, contentType, fileName);
+            return File(transformed.ImageStream, transformed.ImageContentType, fileName);
         }
 
         [Authorize(Roles = "Administrator")]
@@ -361,36 +348,5 @@ namespace PhotoGallery.Web.Controllers
 
             return RedirectToAction("Index", "Gallery");
         }
-
-
-        #region Helper methods
-
-        private static void SaveImage(Image image, Stream output, string? format)
-        {
-            switch ((format ?? "jpg").ToLowerInvariant())
-            {
-                case "png":
-                    image.Save(output, new PngEncoder());
-                    break;
-                case "bmp":
-                    image.Save(output, new BmpEncoder());
-                    break;
-                default:
-                    image.Save(output, new JpegEncoder());
-                    break;
-            }
-        }
-
-        private static string GetContentType(string? format) =>
-            (format ?? "jpg").ToLowerInvariant() switch
-            {
-                "png" => "image/png",
-                "bmp" => "image/bmp",
-                _ => "image/jpeg"
-            };
-
-        private static string GetExtension(string? format) => "." + (format ?? "jpg").ToLowerInvariant();
-
-        #endregion
     }
 }

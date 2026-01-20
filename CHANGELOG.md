@@ -1,8 +1,12 @@
 # PhotoGallery Application
 
-# 0.0.11
+# 0.0.12
 **Added**
-	- Decorator patter
+	- Template pattern
+
+# 0.0.12
+**Added**
+	- Decorator pattern
 	- Refactored handlers to use it
 
 # 0.0.11

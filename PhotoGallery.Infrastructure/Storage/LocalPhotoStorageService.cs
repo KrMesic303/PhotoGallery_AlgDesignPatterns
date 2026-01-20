@@ -4,6 +4,7 @@ using PhotoGallery.Application.Abstractions;
 namespace PhotoGallery.Infrastructure.Storage
 {
     /// <summary>
+    /// PATTERN: Strategy
     /// SOLID: SRP
     /// </summary>
     public sealed class LocalPhotoStorageService : IPhotoStorageService

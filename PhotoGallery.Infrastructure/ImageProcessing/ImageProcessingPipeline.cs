@@ -4,7 +4,7 @@ using SixLabors.ImageSharp;
 namespace PhotoGallery.Infrastructure.ImageProcessing
 {
     /// <summary>
-    /// PATTERN: Template method, Decorator (conceptually with processors, very simmilar definition of them)
+    /// PATTERN: Chain of Responsibility
     /// </summary>
     public class ImageProcessingPipeline
     {

@@ -4,6 +4,9 @@ using PhotoGallery.Application.Abstractions;
 
 namespace PhotoGallery.Infrastructure.Storage
 {
+    /// <summary>
+    /// PATTERN: Strategy
+    /// </summary>
     public sealed class GcsPhotoStorageService : IPhotoStorageService
     {
         private readonly StorageClient _client;

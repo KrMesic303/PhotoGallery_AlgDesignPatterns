@@ -3,7 +3,8 @@
 namespace PhotoGallery.Application.Abstractions
 {
     /// <summary>
-    /// Decorator pattern ( Open/Closed, SRP)
+    /// PATTERN: Strategy
+    /// SOLID: Open/Closed, SRP
     /// </summary>
     public interface IImageProcessor
     {

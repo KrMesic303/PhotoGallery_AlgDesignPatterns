@@ -2,6 +2,9 @@
 
 namespace PhotoGallery.Application.Abstractions.Repositories
 {
+    /// <summary>
+    /// PATTERN: Repository
+    /// </summary>
     public interface IPhotoRepository
     {
         Task<Photo?> FindAsync(int id, CancellationToken cancellationToken = default);

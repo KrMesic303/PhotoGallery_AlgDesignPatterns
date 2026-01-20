@@ -15,6 +15,9 @@ using PhotoGallery.Infrastructure.Storage;
 
 namespace PhotoGallery.Infrastructure
 {
+    /// <summary>
+    /// PATTERN: Composition root
+    /// </summary>
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)

@@ -1,5 +1,13 @@
 # PhotoGallery Application
 
+# 0.0.15
+**Added**
+	- Abstract Factory pattern
+
+**Changed**
+	- CHANGELOG updated
+	- README updated
+
 # 0.0.14
 **Added**
 	- Observer pattern

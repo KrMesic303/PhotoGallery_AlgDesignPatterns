@@ -5,6 +5,7 @@ using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Metrics;
 using PhotoGallery.Application.Abstractions.Queries;
 using PhotoGallery.Application.Abstractions.Repositories;
+using PhotoGallery.Application.Abstractions.Storage;
 using PhotoGallery.Application.Events;
 using PhotoGallery.Application.Events.Photos;
 using PhotoGallery.Application.UseCases.Admin.ChangePackage;
@@ -20,7 +21,7 @@ using PhotoGallery.Infrastructure.Queries;
 using PhotoGallery.Infrastructure.Queries.Admin;
 using PhotoGallery.Infrastructure.Queries.Profile;
 using PhotoGallery.Infrastructure.Services;
-using PhotoGallery.Infrastructure.Storage;
+using PhotoGallery.Infrastructure.Storage.Factories;
 using PhotoGallery.Infrastructure.UseCases.Admin.ChangePackage;
 
 namespace PhotoGallery.Infrastructure
@@ -58,7 +59,7 @@ namespace PhotoGallery.Infrastructure
             services.AddScoped<IDomainEventHandler<PhotoDownloadedEvent>, PhotoMetricEventHandler>();
             services.AddScoped<IDomainEventHandler<PhotoDeletedEvent>, PhotoMetricEventHandler>();
 
-            // Decorator
+            // Decorator and Observer
             services.AddScoped<ChangePackageHandler>();
             services.AddScoped<IChangePackageHandler>(sp => new AuditedChangePackageHandler(
                 sp.GetRequiredService<ChangePackageHandler>(),
@@ -75,16 +76,18 @@ namespace PhotoGallery.Infrastructure
             services.AddScoped<IPhotoUploadPolicy, PhotoUploadPolicy>();
             services.AddScoped<IPhotoQueryService, PhotoQueryService>();
 
-            // Storage provider selection
-            var provider = configuration["Storage:Provider"] ?? "Local";
-            if (provider.Equals("Gcs", StringComparison.OrdinalIgnoreCase))
-            {
-                services.AddScoped<IPhotoStorageService, GcsPhotoStorageService>();
-            }
-            else
-            {
-                services.AddScoped<IPhotoStorageService, LocalPhotoStorageService>();
-            }
+            // Storage
+            // Abstract Factory implementations
+            services.AddScoped<LocalStorageProviderFactory>();
+            services.AddScoped<GcsStorageProviderFactory>();
+            services.AddScoped<StorageProviderFactorySelector>();
+
+            // IStorageProviderFactory as the selected concrete factory
+            services.AddScoped<IStorageProviderFactory>(sp => sp.GetRequiredService<StorageProviderFactorySelector>().Select());
+
+            // Register the product (IPhotoStorageService) via Abstract Factory
+            services.AddScoped<IPhotoStorageService>(sp => sp.GetRequiredService<IStorageProviderFactory>().CreatePhotoStorageService());
+
 
             return services;
         }

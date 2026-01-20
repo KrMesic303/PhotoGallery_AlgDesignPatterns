@@ -70,7 +70,7 @@
             <div class="card-body">
                 <div class="text-muted small">Average Photo Size</div>
                 <div class="fs-5 fw-semibold">
-                    @(Model.AveragePhotoSize / 1024 / 1024).ToString("F2") MB
+                    @((Model.AveragePhotoSize / 1024d / 1024d).ToString("0.##")) MB
                 </div>
             </div>
         </div>

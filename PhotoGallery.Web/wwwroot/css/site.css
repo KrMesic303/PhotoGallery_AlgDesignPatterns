@@ -387,3 +387,56 @@ a:hover {
     color: var(--pg-text);
 }
 
+/* =========================================================
+   CARD TEXT CONTRAST FIXES (Bootstrap utilities on dark theme)
+   ========================================================= */
+
+.card .text-muted {
+    color: var(--pg-text-muted) !important;
+}
+
+:root[data-theme="dark"] .card .text-muted {
+    color: rgba(229, 231, 235, 0.72) !important;
+}
+
+.card .fw-semibold,
+.card .fw-bold,
+.card .fs-3,
+.card .fs-5 {
+    color: var(--pg-text) !important;
+}
+
+
+/* =========================================================
+   MODALS
+   ========================================================= */
+
+.modal-content {
+    background-color: var(--pg-surface-alt);
+    border: 1px solid var(--pg-border);
+    border-radius: 16px;
+    color: var(--pg-text);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--pg-border);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--pg-border);
+}
+
+/* Make the close button visible in dark mode */
+:root[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%);
+    opacity: 0.85;
+}
+
+    :root[data-theme="dark"] .btn-close:hover {
+        opacity: 1;
+    }
+
+/* Ensure placeholders look correct inside modal inputs */
+.modal-content .form-control::placeholder {
+    color: var(--pg-text-muted);
+}

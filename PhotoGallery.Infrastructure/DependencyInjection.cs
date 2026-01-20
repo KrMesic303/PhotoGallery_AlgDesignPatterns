@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Queries;
 using PhotoGallery.Application.Abstractions.Repositories;
+using PhotoGallery.Application.UseCases.Admin.ChangePackage;
 using PhotoGallery.Infrastructure.DbContext;
 using PhotoGallery.Infrastructure.ImageProcessing;
 using PhotoGallery.Infrastructure.Logging;
@@ -12,6 +13,7 @@ using PhotoGallery.Infrastructure.Queries.Admin;
 using PhotoGallery.Infrastructure.Queries.Profile;
 using PhotoGallery.Infrastructure.Services;
 using PhotoGallery.Infrastructure.Storage;
+using PhotoGallery.Infrastructure.UseCases.Admin.ChangePackage;
 
 namespace PhotoGallery.Infrastructure
 {
@@ -37,9 +39,10 @@ namespace PhotoGallery.Infrastructure
             services.AddScoped<IUserProfileQueryService, UserProfileQueryService>();
 
             // Infrastructure services
+            services.AddScoped<IAuditLogger, AuditLogger>();
+            services.AddScoped<IChangePackageHandler, ChangePackageHandler>();
             services.AddScoped<IImageTransformService, ImageSharpTransformService>();
             services.AddScoped<IImageProcessorFactory, ImageProcessorFactory>();
-            services.AddScoped<IAuditLogger, AuditLogger>();
             services.AddScoped<IUploadQuotaService, UploadQuotaService>();
             services.AddScoped<IPhotoUploadPolicy, PhotoUploadPolicy>();
             services.AddScoped<IPhotoQueryService, PhotoQueryService>();

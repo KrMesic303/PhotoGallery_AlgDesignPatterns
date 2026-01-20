@@ -1,18 +1,23 @@
 # PhotoGallery Application
 
+# 0.0.11
+**Added**
+	- Command pattern (CQRS)
+	- Refactored Controllers
+
 # 0.0.10
 **Changed**
-- Controllers are independent of DbContext class, they use services
+	- Controllers are independent of DbContext class, they use services
 
 # 0.0.9
 **Added**
-- Pagination support on Gallery main page (10 photos per page)
-- Paged result abstraction (PagedResult<T>)
-- Page navigation UI with responsive behavior (side navigation on large screens, bottom on small screens)
-- Google Cloud Storage implementation for photo and thumbnail storage
-- Support for external authentication providers:
-	- Google Login
-	- GitHub Login
+	- Pagination support on Gallery main page (10 photos per page)
+	- Paged result abstraction (PagedResult<T>)
+	- Page navigation UI with responsive behavior (side navigation on large screens, bottom on small screens)
+	- Google Cloud Storage implementation for photo and thumbnail storage
+	- Support for external authentication providers:
+		- Google Login
+		- GitHub Login
 
 **Changed**
 	- Gallery index query refactored to support paging

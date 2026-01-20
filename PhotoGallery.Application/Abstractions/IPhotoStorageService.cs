@@ -1,7 +1,7 @@
 ﻿namespace PhotoGallery.Application.Abstractions
 {
     /// <summary>
-    /// PATTERN: Strategy pattern
+    /// PATTERN: Strategy
     /// SOLID: Open/Closed & DI principle
     /// </summary>
     public interface IPhotoStorageService

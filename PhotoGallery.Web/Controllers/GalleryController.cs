@@ -5,8 +5,7 @@ using PhotoGallery.Application.DTOs;
 namespace PhotoGallery.Web.Controllers
 {
     /// <summary>
-    /// PATTERN: Command pattern
-    /// SOLID: SRP
+    /// PATTERN: Command
     /// </summary>
     public class GalleryController : Controller
     {
@@ -17,20 +16,22 @@ namespace PhotoGallery.Web.Controllers
             _photos = photos;
         }
 
-        public async Task<IActionResult> Index(int page = 1)
+        [HttpGet]
+        public async Task<IActionResult> Index(int page = 1, CancellationToken ct = default)
         {
-
             const int pageSize = 10;
+            if (page < 1) page = 1;
 
             var result = await _photos.GetLatestPagedAsync(page, pageSize);
-
             return View(result);
         }
 
-        public async Task<IActionResult> Details(int id)
+        [HttpGet]
+        public async Task<IActionResult> Details(int id, CancellationToken ct = default)
         {
             var photo = await _photos.GetDetailsAsync(id);
-            if (photo == null) return NotFound();
+            if (photo == null)
+                return NotFound();
 
             return View(photo);
         }
@@ -42,7 +43,7 @@ namespace PhotoGallery.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> QuickSearch(string query)
+        public async Task<IActionResult> QuickSearch(string query, CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(query))
                 return PartialView("_SearchResults", new List<PhotoListItemDto>());

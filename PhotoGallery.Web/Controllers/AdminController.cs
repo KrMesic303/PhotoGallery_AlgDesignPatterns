@@ -1,56 +1,51 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Queries;
-using PhotoGallery.Application.Abstractions.Repositories;
 using PhotoGallery.Application.DTOs;
-using PhotoGallery.Domain.Entities;
+using PhotoGallery.Application.UseCases.Admin.BulkDeletePhotos;
+using PhotoGallery.Application.UseCases.Admin.ChangePackage;
+using PhotoGallery.Application.UseCases.Admin.DeletePhoto;
 using PhotoGallery.Web.ViewModels;
 using System.Security.Claims;
 
 namespace PhotoGallery.Web.Controllers
 {
     /// <summary>
-    /// PATTERN: Command pattern
+    /// PATTERN: Command
     /// SOLID: SRP, DI
     /// </summary>
     [Authorize(Roles = "Administrator")]
     public class AdminController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IAuditLogger _auditLogger;
-        private readonly IPhotoStorageService _storage;
-
         private readonly IAdminUserQueryService _adminUsers;
         private readonly IAdminPhotoQueryService _adminPhotos;
         private readonly IAuditLogQueryService _auditLogs;
         private readonly IAdminStatisticsQueryService _stats;
-
         private readonly IPhotoQueryService _photoQuery;
-        private readonly IPhotoRepository _photoRepository;
+
+        private readonly IChangePackageHandler _changePackage;
+        private readonly IAdminDeletePhotoHandler _deletePhoto;
+        private readonly IBulkDeletePhotosHandler _bulkDelete;
 
         public AdminController(
-            UserManager<ApplicationUser> userManager,
-            IAuditLogger auditLogger,
-            IPhotoStorageService storage,
             IAdminUserQueryService adminUsers,
             IAdminPhotoQueryService adminPhotos,
             IAuditLogQueryService auditLogs,
             IAdminStatisticsQueryService stats,
             IPhotoQueryService photoQuery,
-            IPhotoRepository photoRepository)
+            IChangePackageHandler changePackage,
+            IAdminDeletePhotoHandler deletePhoto,
+            IBulkDeletePhotosHandler bulkDelete)
         {
-            _userManager = userManager;
-            _auditLogger = auditLogger;
-            _storage = storage;
             _adminUsers = adminUsers;
             _adminPhotos = adminPhotos;
             _auditLogs = auditLogs;
             _stats = stats;
             _photoQuery = photoQuery;
-            _photoRepository = photoRepository;
+            _changePackage = changePackage;
+            _deletePhoto = deletePhoto;
+            _bulkDelete = bulkDelete;
         }
 
         public async Task<IActionResult> Users(CancellationToken ct)
@@ -63,20 +58,16 @@ namespace PhotoGallery.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePackage(string userId, int packageId, CancellationToken ct)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return NotFound();
+            var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(adminUserId))
+                return Unauthorized();
 
-            user.PackagePlanId = packageId;
-            user.PackageEffectiveFrom = DateTime.UtcNow;
-
-            await _userManager.UpdateAsync(user);
-
-            await _auditLogger.LogAsync(
-                userId: User.FindFirstValue(ClaimTypes.NameIdentifier)!,
-                action: "ADMIN_CHANGE_PACKAGE",
-                entityType: nameof(ApplicationUser),
-                entityId: userId,
-                cancellationToken: ct);
+            await _changePackage.HandleAsync(new ChangePackageCommand
+            {
+                TargetUserId = userId,
+                PackageId = packageId,
+                AdminUserId = adminUserId
+            }, ct);
 
             return RedirectToAction(nameof(Users));
         }
@@ -91,55 +82,39 @@ namespace PhotoGallery.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeletePhoto(int id, CancellationToken ct)
         {
-            var photo = await _photoRepository.FindAsync(id, ct);
-            if (photo == null) return NotFound();
+            var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(adminUserId))
+                return Unauthorized();
 
-            // Remove files from storage
-            await _storage.DeleteAsync(photo.StorageKey, ct);
-            if (!string.IsNullOrEmpty(photo.ThumbnailStorageKey))
-                await _storage.DeleteAsync(photo.ThumbnailStorageKey, ct);
+            try
+            {
+                await _deletePhoto.HandleAsync(new AdminDeletePhotoCommand
+                {
+                    PhotoId = id,
+                    AdminUserId = adminUserId
+                }, ct);
 
-            _photoRepository.Remove(photo);
-            await _photoRepository.SaveChangesAsync(ct);
-
-            await _auditLogger.LogAsync(
-                userId: User.FindFirstValue(ClaimTypes.NameIdentifier)!,
-                action: "ADMIN_DELETE_PHOTO",
-                entityType: nameof(Photo),
-                entityId: photo.Id.ToString(),
-                cancellationToken: ct);
-
-            return RedirectToAction(nameof(Photos));
+                return RedirectToAction(nameof(Photos));
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BulkDeletePhotos(int[] photoIds, CancellationToken ct)
         {
-            if (photoIds == null || photoIds.Length == 0)
-                return RedirectToAction(nameof(Photos));
+            var adminUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(adminUserId))
+                return Unauthorized();
 
-            // Using admin query service to fetch photos
-            var photos = await _adminPhotos.GetPhotosByIdsAsync(photoIds, ct);
-
-            foreach (var photo in photos)
+            await _bulkDelete.HandleAsync(new BulkDeletePhotosCommand
             {
-                await _storage.DeleteAsync(photo.StorageKey, ct);
-
-                if (!string.IsNullOrEmpty(photo.ThumbnailStorageKey))
-                    await _storage.DeleteAsync(photo.ThumbnailStorageKey, ct);
-
-                _photoRepository.Remove(photo);
-            }
-
-            await _photoRepository.SaveChangesAsync(ct);
-
-            await _auditLogger.LogAsync(
-                userId: User.FindFirstValue(ClaimTypes.NameIdentifier)!,
-                action: "BULK_DELETE_PHOTO",
-                entityType: nameof(Photo),
-                entityId: string.Join(",", photoIds),
-                cancellationToken: ct);
+                PhotoIds = photoIds ?? Array.Empty<int>(),
+                AdminUserId = adminUserId
+            }, ct);
 
             return RedirectToAction(nameof(Photos));
         }
@@ -159,13 +134,10 @@ namespace PhotoGallery.Web.Controllers
                 Users = dto.Users,
                 Photos = dto.Photos,
                 StorageUsed = dto.StorageUsed,
-
                 TotalUploads = dto.TotalUploads,
                 UploadsLast7Days = dto.UploadsLast7Days,
-
                 LargestPhotoSize = dto.LargestPhotoSize,
                 AveragePhotoSize = dto.AveragePhotoSize,
-
                 TotalDownloads = dto.TotalDownloads,
                 TopDownloadedPhotos = dto.TopDownloadedPhotos.Select(x => new PhotoDownloadStat
                 {
@@ -173,7 +145,6 @@ namespace PhotoGallery.Web.Controllers
                     DownloadCount = x.DownloadCount,
                     Description = x.Description
                 }).ToList(),
-
                 StoragePerUser = dto.StoragePerUser.Select(x => new UserStorageStat
                 {
                     UserEmail = x.UserEmail,
@@ -183,7 +154,6 @@ namespace PhotoGallery.Web.Controllers
 
             return View(model);
         }
-
 
         [HttpGet]
         public IActionResult Search()

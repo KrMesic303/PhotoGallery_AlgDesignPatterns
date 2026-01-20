@@ -15,6 +15,7 @@ namespace PhotoGallery.Web.Controllers
             _profiles = profiles;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index(CancellationToken ct)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

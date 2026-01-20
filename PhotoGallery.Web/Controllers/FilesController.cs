@@ -1,46 +1,49 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PhotoGallery.Application.Abstractions;
-using PhotoGallery.Application.Abstractions.Repositories;
+using PhotoGallery.Application.UseCases.Files;
 
 namespace PhotoGallery.Web.Controllers
 {
-    /// <summary>
-    /// PATTERN: Command pattern
-    /// SOLID: SRP, DI
-    /// </summary>
     public class FilesController : Controller
     {
-        private readonly IPhotoRepository _photos;
-        private readonly IPhotoStorageService _storage;
+        private readonly IGetPhotoFileHandler _files;
 
-        public FilesController(
-            IPhotoRepository photos,
-            IPhotoStorageService storage)
+        public FilesController(IGetPhotoFileHandler files)
         {
-            _photos = photos;
-            _storage = storage;
+            _files = files;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Photo(int id)
+        public async Task<IActionResult> Photo(int id, CancellationToken ct)
         {
-            var photo = await _photos.FindAsync(id);
-            if (photo == null)
-                return NotFound();
+            try
+            {
+                var result = await _files.HandleAsync(
+                    new GetPhotoFileQuery { PhotoId = id, IsThumbnail = false },
+                    ct);
 
-            var stream = await _storage.GetAsync(photo.StorageKey);
-            return File(stream, photo.ContentType);
+                return File(result.Stream, result.ContentType);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
 
         [HttpGet]
-        public async Task<IActionResult> Thumbnail(int id)
+        public async Task<IActionResult> Thumbnail(int id, CancellationToken ct)
         {
-            var photo = await _photos.FindAsync(id);
-            if (photo == null || string.IsNullOrEmpty(photo.ThumbnailStorageKey))
-                return NotFound();
+            try
+            {
+                var result = await _files.HandleAsync(
+                    new GetPhotoFileQuery { PhotoId = id, IsThumbnail = true },
+                    ct);
 
-            var stream = await _storage.GetAsync(photo.ThumbnailStorageKey);
-            return File(stream, "image/jpeg");
+                return File(result.Stream, result.ContentType);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound();
+            }
         }
     }
 }

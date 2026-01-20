@@ -1,0 +1,5 @@
+﻿@PhotoGallery.Web_HostAddress = https://localhost:7020
+
+GET {{PhotoGallery.Web_HostAddress}}/photos/upload/12
+
+###

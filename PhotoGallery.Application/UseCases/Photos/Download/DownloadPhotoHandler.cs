@@ -1,6 +1,5 @@
 ﻿using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Repositories;
-using PhotoGallery.Domain.Entities;
 
 namespace PhotoGallery.Application.UseCases.Photos.Download
 {
@@ -9,18 +8,15 @@ namespace PhotoGallery.Application.UseCases.Photos.Download
         private readonly IPhotoRepository _photos;
         private readonly IPhotoStorageService _storage;
         private readonly IImageTransformService _transform;
-        private readonly IAuditLogger _audit;
 
         public DownloadPhotoHandler(
             IPhotoRepository photos,
             IPhotoStorageService storage,
-            IImageTransformService transform,
-            IAuditLogger audit)
+            IImageTransformService transform)
         {
             _photos = photos;
             _storage = storage;
             _transform = transform;
-            _audit = audit;
         }
 
         public async Task<DownloadPhotoResult> HandleAsync(DownloadPhotoQuery query, CancellationToken cancellationToken = default)
@@ -34,12 +30,6 @@ namespace PhotoGallery.Application.UseCases.Photos.Download
                 // Do NOT dispose this stream here - its disposed later by ASP.NET
                 var originalStream = await _storage.GetAsync(photo.StorageKey, cancellationToken);
 
-                await _audit.LogAsync(
-                    query.RequestUserIdOrAnonymous,
-                    "DOWNLOAD_PHOTO",
-                    nameof(Photo),
-                    photo.Id.ToString(),
-                    cancellationToken);
 
                 return new DownloadPhotoResult
                 {
@@ -59,13 +49,6 @@ namespace PhotoGallery.Application.UseCases.Photos.Download
 
             // Do NOT dispose transformed.ImageStream before returning.
             var fileName = Path.GetFileNameWithoutExtension(photo.OriginalFileName) + transformed.ImageExtension;
-
-            await _audit.LogAsync(
-                query.RequestUserIdOrAnonymous,
-                "DOWNLOAD_PHOTO",
-                nameof(Photo),
-                photo.Id.ToString(),
-                cancellationToken);
 
             return new DownloadPhotoResult
             {

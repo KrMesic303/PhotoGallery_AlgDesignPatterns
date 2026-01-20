@@ -5,7 +5,7 @@ using PhotoGallery.Infrastructure.DbContext;
 namespace PhotoGallery.Infrastructure.Logging
 {
     /// <summary>
-    /// PATTERN: Observer / Event pattern
+    /// PATTERN: Observer - Decorator
     /// SOLID: Open/Closed principle
     /// </summary>
     public class AuditLogger : IAuditLogger

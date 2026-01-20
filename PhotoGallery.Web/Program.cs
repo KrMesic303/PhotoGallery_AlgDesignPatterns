@@ -1,15 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PhotoGallery.Application;
-using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Domain.Entities;
 using PhotoGallery.Infrastructure;
 using PhotoGallery.Infrastructure.DbContext;
-using PhotoGallery.Infrastructure.ImageProcessing;
-using PhotoGallery.Infrastructure.Logging;
-using PhotoGallery.Infrastructure.Queries;
-using PhotoGallery.Infrastructure.Services;
-using PhotoGallery.Infrastructure.Storage;
 
 namespace PhotoGallery.Web
 {
@@ -55,6 +49,12 @@ namespace PhotoGallery.Web
                     options.Scope.Add("user:email");
                 });
 
+            builder.Host.UseDefaultServiceProvider(options =>
+            {
+                options.ValidateOnBuild = true;
+                options.ValidateScopes = true;
+            });
+            
             var app = builder.Build();
 
             // Seed Roles / Admin user
@@ -82,7 +82,12 @@ namespace PhotoGallery.Web
             }
 
             // Middleware
-            if (!app.Environment.IsDevelopment())
+            // Middleware
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();

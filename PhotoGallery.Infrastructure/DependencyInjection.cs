@@ -5,6 +5,7 @@ using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Queries;
 using PhotoGallery.Application.Abstractions.Repositories;
 using PhotoGallery.Application.UseCases.Admin.ChangePackage;
+using PhotoGallery.Application.UseCases.Common.Auditing;
 using PhotoGallery.Infrastructure.DbContext;
 using PhotoGallery.Infrastructure.ImageProcessing;
 using PhotoGallery.Infrastructure.Logging;
@@ -40,7 +41,11 @@ namespace PhotoGallery.Infrastructure
 
             // Infrastructure services
             services.AddScoped<IAuditLogger, AuditLogger>();
-            services.AddScoped<IChangePackageHandler, ChangePackageHandler>();
+
+            // added Decorator
+            services.AddScoped<ChangePackageHandler>();
+            services.AddScoped<IChangePackageHandler>(sp => new AuditedChangePackageHandler(sp.GetRequiredService<ChangePackageHandler>(), sp.GetRequiredService<IAuditLogger>()));
+
             services.AddScoped<IImageTransformService, ImageSharpTransformService>();
             services.AddScoped<IImageProcessorFactory, ImageProcessorFactory>();
             services.AddScoped<IUploadQuotaService, UploadQuotaService>();

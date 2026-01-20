@@ -1,5 +1,4 @@
-﻿using PhotoGallery.Application.Abstractions;
-using PhotoGallery.Application.Abstractions.Repositories;
+﻿using PhotoGallery.Application.Abstractions.Repositories;
 using PhotoGallery.Domain.Entities;
 
 namespace PhotoGallery.Application.UseCases.Photos.Edit
@@ -8,13 +7,12 @@ namespace PhotoGallery.Application.UseCases.Photos.Edit
     {
         private readonly IPhotoRepository _photos;
         private readonly IHashtagRepository _hashtags;
-        private readonly IAuditLogger _audit;
 
-        public EditPhotoMetadataHandler(IPhotoRepository photos, IHashtagRepository hashtags, IAuditLogger audit)
+        public EditPhotoMetadataHandler(IPhotoRepository photos, IHashtagRepository hashtags)
         {
             _photos = photos;
             _hashtags = hashtags;
-            _audit = audit;
+
         }
 
         public async Task HandleAsync(EditPhotoMetadataCommand command, CancellationToken cancellationToken = default)
@@ -36,7 +34,6 @@ namespace PhotoGallery.Application.UseCases.Photos.Edit
             }
 
             await _photos.SaveChangesAsync(cancellationToken);
-            await _audit.LogAsync(command.UserId, "EDIT_PHOTO_METADATA", nameof(Photo), photo.Id.ToString(), cancellationToken);
         }
 
         private static IEnumerable<string> SplitTags(string? raw)

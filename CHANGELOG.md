@@ -2,6 +2,11 @@
 
 # 0.0.11
 **Added**
+	- Decorator patter
+	- Refactored handlers to use it
+
+# 0.0.11
+**Added**
 	- Command pattern (CQRS)
 	- Refactored Controllers
 

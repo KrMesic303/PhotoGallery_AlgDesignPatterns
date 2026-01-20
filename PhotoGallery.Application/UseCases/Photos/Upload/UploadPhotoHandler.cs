@@ -11,22 +11,19 @@ namespace PhotoGallery.Application.UseCases.Photos.Upload
         private readonly IPhotoStorageService _storage;
         private readonly IPhotoRepository _photos;
         private readonly IHashtagRepository _hashtags;
-        private readonly IAuditLogger _audit;
 
         public UploadPhotoHandler(
             IPhotoUploadPolicy uploadPolicy,
             IImageTransformService imageTransform,
             IPhotoStorageService storage,
             IPhotoRepository photos,
-            IHashtagRepository hashtags,
-            IAuditLogger audit)
+            IHashtagRepository hashtags)
         {
             _uploadPolicy = uploadPolicy;
             _imageTransform = imageTransform;
             _storage = storage;
             _photos = photos;
             _hashtags = hashtags;
-            _audit = audit;
         }
 
         public async Task<UploadPhotoResult> HandleAsync(UploadPhotoCommand command, CancellationToken cancellationToken = default)
@@ -120,9 +117,6 @@ namespace PhotoGallery.Application.UseCases.Photos.Upload
 
             _photos.Add(photo);
             await _photos.SaveChangesAsync(cancellationToken);
-
-            // Audit
-            await _audit.LogAsync(command.User.Id, "UPLOAD_PHOTO", nameof(Photo), photo.Id.ToString(), cancellationToken);
 
             return new UploadPhotoResult { PhotoId = photo.Id };
         }

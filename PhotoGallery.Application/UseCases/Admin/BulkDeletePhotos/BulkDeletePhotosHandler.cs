@@ -1,7 +1,6 @@
 ﻿using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Queries;
 using PhotoGallery.Application.Abstractions.Repositories;
-using PhotoGallery.Domain.Entities;
 
 namespace PhotoGallery.Application.UseCases.Admin.BulkDeletePhotos
 {
@@ -10,18 +9,15 @@ namespace PhotoGallery.Application.UseCases.Admin.BulkDeletePhotos
         private readonly IAdminPhotoQueryService _adminPhotos;
         private readonly IPhotoRepository _photos;
         private readonly IPhotoStorageService _storage;
-        private readonly IAuditLogger _audit;
 
         public BulkDeletePhotosHandler(
             IAdminPhotoQueryService adminPhotos,
             IPhotoRepository photos,
-            IPhotoStorageService storage,
-            IAuditLogger audit)
+            IPhotoStorageService storage)
         {
             _adminPhotos = adminPhotos;
             _photos = photos;
             _storage = storage;
-            _audit = audit;
         }
 
         public async Task HandleAsync(BulkDeletePhotosCommand command, CancellationToken cancellationToken = default)
@@ -41,13 +37,6 @@ namespace PhotoGallery.Application.UseCases.Admin.BulkDeletePhotos
             }
 
             await _photos.SaveChangesAsync(cancellationToken);
-
-            await _audit.LogAsync(
-                command.AdminUserId,
-                "BULK_DELETE_PHOTO",
-                nameof(Photo),
-                string.Join(",", command.PhotoIds),
-                cancellationToken);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using PhotoGallery.Application.Abstractions;
 using PhotoGallery.Application.Abstractions.Repositories;
-using PhotoGallery.Domain.Entities;
 
 namespace PhotoGallery.Application.UseCases.Photos.Delete
 {
@@ -8,13 +7,11 @@ namespace PhotoGallery.Application.UseCases.Photos.Delete
     {
         private readonly IPhotoRepository _photos;
         private readonly IPhotoStorageService _storage;
-        private readonly IAuditLogger _audit;
 
-        public DeletePhotoHandler(IPhotoRepository photos, IPhotoStorageService storage, IAuditLogger audit)
+        public DeletePhotoHandler(IPhotoRepository photos, IPhotoStorageService storage)
         {
             _photos = photos;
             _storage = storage;
-            _audit = audit;
         }
 
         public async Task HandleAsync(DeletePhotoCommand command, CancellationToken cancellationToken = default)
@@ -33,8 +30,6 @@ namespace PhotoGallery.Application.UseCases.Photos.Delete
 
             _photos.Remove(photo);
             await _photos.SaveChangesAsync(cancellationToken);
-
-            await _audit.LogAsync(command.UserId, "DELETE_PHOTO", nameof(Photo), photo.Id.ToString(), cancellationToken);
         }
     }
 }

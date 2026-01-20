@@ -4,7 +4,7 @@ namespace PhotoGallery.Application.Abstractions
 {
     /// <summary>
     /// Repository abstraction separates queries from controllers, EF also uses repositories in behind with DbSet<...>
-    /// SOLID: ISP - gallery controller is dependant only on querying, not on uploading or deleting
+    /// SOLID: SRP, ISP - gallery controller is dependant only on querying, not on uploading or deleting
     /// </summary>
     public interface IPhotoQueryService
     {

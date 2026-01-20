@@ -20,7 +20,7 @@ namespace PhotoGallery.Application
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             // Command pattern registration
-            // Inner handlers (concrete)
+            // Inner handlers (concrete implementation)
             services.AddScoped<UploadPhotoHandler>();
             services.AddScoped<EditPhotoMetadataHandler>();
             services.AddScoped<DeletePhotoHandler>();
@@ -34,7 +34,6 @@ namespace PhotoGallery.Application
 
             // Decorator pattern registration
             // Decorated registrations (interfaces - decorator wrapping inner)
-
             services.AddScoped<IUploadPhotoHandler>(sp => new AuditedUploadPhotoHandler(sp.GetRequiredService<UploadPhotoHandler>(), sp.GetRequiredService<IAuditLogger>()));
             services.AddScoped<IEditPhotoMetadataHandler>(sp => new AuditedEditPhotoMetadataHandler(sp.GetRequiredService<EditPhotoMetadataHandler>(), sp.GetRequiredService<IAuditLogger>()));
             services.AddScoped<IDeletePhotoHandler>(sp => new AuditedDeletePhotoHandler(sp.GetRequiredService<DeletePhotoHandler>(), sp.GetRequiredService<IAuditLogger>()));

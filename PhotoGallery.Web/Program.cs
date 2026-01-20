@@ -57,7 +57,7 @@ namespace PhotoGallery.Web
             
             var app = builder.Build();
 
-            // Seed Roles / Admin user
+            // Admin user seed role
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
@@ -81,7 +81,6 @@ namespace PhotoGallery.Web
                 }
             }
 
-            // Middleware
             // Middleware
             if (app.Environment.IsDevelopment())
             {

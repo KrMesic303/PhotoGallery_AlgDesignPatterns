@@ -25,6 +25,7 @@
         --pg-accent: #4ade80;
         --pg-bg: #0a0f25;
         --pg-surface: #020617;
+        --pg-surface-modal: #272d4e;
         --pg-surface-alt: #24225f;
         --pg-border: #0b1331;
         --pg-text: #e5e7eb;
@@ -90,8 +91,8 @@ body {
 .photo-card {
     background-color: var(--pg-surface-alt);
     border-radius: 16px;
-    padding: 1rem;
-    max-width: 420px;
+    padding: 1.25rem;
+    width: min(90vw, 720px);
 }
 
 /* =========================================================
@@ -412,7 +413,7 @@ a:hover {
    ========================================================= */
 
 .modal-content {
-    background-color: var(--pg-surface-alt);
+    background-color: var(--pg-surface-modal);
     border: 1px solid var(--pg-border);
     border-radius: 16px;
     color: var(--pg-text);

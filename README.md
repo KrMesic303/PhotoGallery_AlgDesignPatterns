@@ -129,15 +129,6 @@ Benefit: Adding a new storage provider becomes an additive change: new factory +
 
 ---
 
-## Design Patterns Table:
-
-| Layer         | Pattern                               |
-| ------------- | ------------------------------------- |
-| Business      | Strategy, Command                     |
-| Data/Service  | Abstract Factory, Specification       |
-| Presentation  | Template Method (pipeline), Decorator |
-| Cross-cutting | Factory (DI), Strategy                |
-
 ## SOLID principles:
 S — Single Responsibility
     - Handlers own use-case orchestration (upload/edit/delete)
